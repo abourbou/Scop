@@ -29,6 +29,7 @@ PATH_OBJ	=	obj
 
 # Source
 SRC			=	$(addprefix $(PATH_SRC)/, main.cxx \
+				obj.cxx \
 				)
 
 OBJ			=	$(addprefix $(PATH_OBJ)/, $(SRC:.cxx=.o))
