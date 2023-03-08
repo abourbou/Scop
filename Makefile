@@ -2,7 +2,7 @@
 # Compilation
 NAME		=	Scop
 CC			=	g++
-FLAGS		=	-Wall -Wextra -g3
+FLAGS		=	-std=c++14 -Wall -Wextra -g3
 HEADER		=	-I$(PATH_INC)
 
 # Color Code and template code
@@ -59,6 +59,9 @@ fclean	:	clean
 	@ printf "$(CYAN)'$(NAME)'$(RESET) and all .o has been $(RED)deleted. 🗑️\n$(RESET)"
 
 re		:	fclean all
+
+run : all
+	 ./$(NAME)
 
 help	:
 	@ printf "$(RESET)Welcom to Scop a project of graphic computing. \n$(RESET)"
