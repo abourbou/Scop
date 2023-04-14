@@ -55,7 +55,6 @@ void	Obj::ParseVertex(std::stringstream& lineStream, size_t lineNb)
 	if (compt != 3)
 		throw FileException("Invalid number of arguments for a vertex", lineNb);
 
-	std::cout << "vertex " << vecVertex.size() + 1 << " : " << transpose(vertex) << std::endl;
 	vecVertex.emplace_back(vertex);
 }
 
@@ -81,12 +80,6 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 		faceVertices.push_back(this->vecVertex[id - 1]);
 	}
 
-	//!
-	std::cout << std::endl;
-	//!
-	static size_t compt = 1;
-	std::cout << "face " << compt << std::endl;
-	++compt;
 	if (faceVertices.size() < 3)
 		throw FileException("Unvalid face : not enough vertices", lineNb);
 	Triangulation(faceVertices, lineNb);
@@ -99,12 +92,8 @@ void	Obj::Triangulation(const std::vector<Vector3d>& faceVertices, size_t lineNb
 
 	if (nbVert < 3)
 		return;
-	std::cout << "nbVert : " << nbVert << std::endl;
 	for (size_t i = 0; i < nbVert; ++i)
-	{
 		vecEdges.push_back(faceVertices[(i + 1) % nbVert] - faceVertices[i % nbVert]);
-		std::cout << "vecEdges[" << i << "] : " << transpose(vecEdges.back()) << std::endl;
-	}
 
 	if (!IsPolygonePlane(vecEdges))
 		std::cerr << "l" << lineNb << ": face is not plane" << std::endl;
@@ -116,7 +105,6 @@ void	Obj::Triangulation(const std::vector<Vector3d>& faceVertices, size_t lineNb
 
 void	Obj::CreateTriangle(const std::vector<Vector3d>& faceVertices)
 {
-	std::cout << "Create Triangle!" << std::endl;
 	static int id = 0;
 
 	++id;
@@ -130,10 +118,6 @@ void	Obj::CreateTriangle(const std::vector<Vector3d>& faceVertices)
 		triangle.vertexNormal.normalize();
 
 		this->mapTriangle.insert(std::pair<int, Triangle>(id, triangle));
-		std::cout << "Triangle(" << id << ") : " << transpose(triangle.vertices[0])
-				  << ", " << transpose(triangle.vertices[1])
-				  << ", " << transpose(triangle.vertices[2]) << std::endl;
-		std::cout << "normal(" << triangle.vertexNormal.euclidNorm() << ") : " << transpose(triangle.vertexNormal) << std::endl;
 	}
 }
 
