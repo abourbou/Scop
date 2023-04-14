@@ -1,13 +1,15 @@
 
-#include <scop.hpp>
-#include <matrix.hpp>
-#include <obj.hpp>
+#include "scop.hpp"
+#include "matrix.hpp"
+#include "obj.hpp"
+#include "rendering.hpp"
 
 int main()
 {
     try
     {
-        Obj("test.obj");
+        Obj obj("test.obj");
+		rendering(obj);
     }
     catch(const std::exception& e)
     {

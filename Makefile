@@ -30,6 +30,7 @@ PATH_OBJ	=	obj
 # Source
 SRC			=	$(addprefix $(PATH_SRC)/, main.cxx \
 				obj.cxx \
+				rendering.cxx \
 				)
 
 OBJ			=	$(addprefix $(PATH_OBJ)/, $(SRC:.cxx=.o))
@@ -43,7 +44,7 @@ INC			=	$(INC_FILES)
 all			:	$(NAME)
 
 $(NAME)	:	$(OBJ) $(INC)
-	@ $(CC) $(FLAGS) $(HEADER) $(OBJ) -o $(NAME)
+	@ $(CC) $(FLAGS) $(HEADER) $(OBJ) -o $(NAME) -lglfw -lGL -lGLEW
 	@ printf "\033[2K\r$(BLUE)$(NAME)$(RESET)$(BLUEE): $(ICONOK)Compiled [√]$(RESET)\n"
 
 $(PATH_OBJ)/%.o		: 	%.cxx    $(INC)
