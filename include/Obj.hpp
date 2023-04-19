@@ -10,7 +10,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "matrix.hpp"
+#include "Matrix.hpp"
 
 //? Obj type handles :
 //* v vertex

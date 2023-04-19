@@ -1,5 +1,5 @@
 
-#include "obj.hpp"
+#include "Obj.hpp"
 
 Obj::Obj(std::string fileName)
 {

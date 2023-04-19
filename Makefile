@@ -28,9 +28,11 @@ PATH_SRC	=	src
 PATH_OBJ	=	obj
 
 # Source
-SRC			=	$(addprefix $(PATH_SRC)/, main.cxx \
-				obj.cxx \
-				rendering.cxx \
+SRC			=	$(addprefix $(PATH_SRC)/, \
+				Scop.cxx		\
+				Obj.cxx 		\
+				Rendering.cxx	\
+				LoadShader.cxx	\
 				)
 
 OBJ			=	$(addprefix $(PATH_OBJ)/, $(SRC:.cxx=.o))

@@ -1,8 +1,8 @@
 
-#include "scop.hpp"
-#include "matrix.hpp"
-#include "obj.hpp"
-#include "rendering.hpp"
+#include "Scop.hpp"
+#include "Matrix.hpp"
+#include "Obj.hpp"
+#include "Rendering.hpp"
 
 int main()
 {

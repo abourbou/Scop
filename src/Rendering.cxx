@@ -1,5 +1,5 @@
 
-#include "rendering.hpp"
+#include "Rendering.hpp"
 
 GLFWwindow*	init_openGL()
 {
@@ -18,8 +18,7 @@ GLFWwindow*	init_openGL()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow( 1024, 768, "Scop", NULL, NULL);
-	if(window == NULL)
+	if (!(window = glfwCreateWindow( 1024, 768, "Scop", NULL, NULL)))
 	{
 		std::cerr << "Failed to open GLFW window" << std::endl;
 		glfwTerminate();
@@ -38,7 +37,7 @@ GLFWwindow*	init_openGL()
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-	// Dark blue background
+	// Dark background
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	return window;
@@ -65,7 +64,14 @@ void	loop_windows(GLFWwindow*	window)
 }
 
 void	make_triangle()
-{}
+{
+	GLuint VertexArrayID;
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+
+	// Create and compile our GLSL program from the shaders
+	// GLuint programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader" );
+}
 
 void	rendering(Obj& obj)
 {
