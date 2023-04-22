@@ -5,17 +5,26 @@
 #include <cstring>
 #include <cmath>
 
+// TODO The matrix library is in progress, their is some possible improvements
+// TODO - Create array class and make vector and matrix heritate from it
+// TODO - Create shortcut for fixed size 2-4 vec and mat
+// TODO - Add x,y,z shorcut for vector ?
+// TODO - Add static_cast when using 1 or 0 on matrix operations
+// ************************************************
+// ******************* Typedef ********************
+// ************************************************
 template <typename scal, size_t M, size_t N>
 class Matrix;
-
 template <typename scal, size_t M>
 using Vector = Matrix<scal, M, 1>;
 
+template <typename scal>
+using Vector3 = Vector<scal,3>;
+template <typename scal>
+using Matrix3 = Matrix<scal,3,3>;
+
 using Vector3d = Vector<double, 3>;
 using Matrix3d = Matrix<double, 3, 3>;
-
-using Vector4d = Vector<double, 4>;
-using Matrix4d = Matrix<double, 4, 4>;
 
 // ************************************************
 // ***************** Matrix Class *****************
@@ -28,7 +37,7 @@ class Matrix : public std::array<std::array<scal, N>, M>
 	using matScal = Matrix<scal, _M, _N>;
 
 	static_assert(std::is_arithmetic<scal>::value, "Matrix val is not an arithmetic type");
-	static_assert(M != 0 && N != 0, "Invalid Matrix size");
+	static_assert(M != 0 && N != 0, "Null Matrix size");
 
 	//		Exception class
 	class MatrixException : public std::exception
@@ -48,6 +57,7 @@ class Matrix : public std::array<std::array<scal, N>, M>
 	public:
 		Matrix(scal val = 0);
 		Matrix(const matrixType& rhs){*this = rhs;}
+		Matrix(const std::array<std::array<scal, N>, M>& arr) : std::array<std::array<scal, N>, M>(arr){}
 
 		// Accessibility operators
 		scal	operator[](size_t i) const;
@@ -55,12 +65,15 @@ class Matrix : public std::array<std::array<scal, N>, M>
 		scal	operator()(size_t i, size_t j) const;
 		scal&	operator()(size_t i, size_t j);
 		matrixType&	operator=(const matrixType& rhs);
+		matrixType&	operator+=(const matrixType& rhs);
+		matrixType&	operator-=(const matrixType& rhs);
 
 		// Matrix arithmetic
-		scal		dotProduct(const matrixType& rhs) const;
-		matrixType	crossProduct(const matrixType& rhs) const;
-		scal		euclidNorm() const;
-		void		normalize();
+		static Matrix<scal, M, N>	Identity();
+		scal			dotProduct(const matrixType& rhs) const;
+		matrixType		crossProduct(const matrixType& rhs) const;
+		scal			euclidNorm() const;
+		matrixType		&normalize();
 };
 
 // Basic arithmetic
@@ -131,6 +144,17 @@ Matrix<scal, M, N>&	Matrix<scal, M, N>::operator=(const matrixType& rhs)
 	return *this;
 }
 
+template <typename scal, size_t M, size_t N>
+Matrix<scal, M, N>	Matrix<scal, M, N>::Identity()
+{
+	Matrix<scal, M, N>	result;
+
+	for (size_t i = 0; i < std::min(M, N); ++i)
+		result(i, i) = 1;
+
+	return result;
+}
+
 // ************************************************
 // *************** Basic Arithmetic ***************
 // ************************************************
@@ -176,6 +200,26 @@ Matrix<scal, M, N> operator*(const Matrix<scal, M, N>& mat, scal val)
 	return val * mat;
 }
 
+template <typename scal, size_t M, size_t N>
+Matrix<scal, M, N>&	Matrix<scal, M, N>::operator+=(const matrixType& rhs)
+{
+	for (size_t i = 0; i < M; ++i)
+		for (size_t j = 0; j < N; ++j)
+			(*this)(i, j) += rhs(i,j);
+
+	return *this;
+}
+
+template <typename scal, size_t M, size_t N>
+Matrix<scal, M, N>&	Matrix<scal, M, N>::operator-=(const matrixType& rhs)
+{
+	for (size_t i = 0; i < M; ++i)
+		for (size_t j = 0; j < N; ++j)
+			(*this)(i, j) -= rhs(i,j);
+
+	return *this;
+}
+
 // ************************************************
 // *************** Matrix Arithmetic **************
 // ************************************************
@@ -187,12 +231,7 @@ scal	Matrix<scal, M, N>::dotProduct(const Matrix<scal, M, N>& rhs) const
 	if (N != 1)
 		throw MatrixException("Invalid matrix for dot product");
 	for (size_t i = 0; i < M; ++i)
-	{
-		if (i == 0)
-			val = (*this)[i] * rhs[i];
-		else
 			val += (*this)[i] * rhs[i];
-	}
 	return val;
 }
 
@@ -224,10 +263,12 @@ scal		Matrix<scal, M, N>::euclidNorm() const
 }
 
 template <typename scal, size_t M, size_t N>
-void		Matrix<scal, M, N>::normalize()
+Matrix<scal, M, N>&	Matrix<scal, M, N>::normalize()
 {
 	scal norm_1 = 1. / this->euclidNorm();
 	*this = norm_1 * *this;
+
+	return *this;
 }
 
 

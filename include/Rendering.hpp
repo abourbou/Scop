@@ -12,6 +12,7 @@
 #include <GLFW/glfw3.h>
 
 #include "Obj.hpp"
+#include "Transformations.hpp"
 
 void	rendering(Obj& obj);
 
