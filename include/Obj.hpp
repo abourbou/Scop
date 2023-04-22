@@ -58,6 +58,8 @@ class Obj
 		std::vector<GLfloat>		vecTriangle;
 		//every normal are 3 float
 		std::vector<GLfloat>		vecNormal;
+		// Center point of the polygon
+		GLfloat						centerPoint[3];
 
 	private:
 		std::vector<Vector3d>			vecVertex;
@@ -68,6 +70,7 @@ class Obj
 	void	ParseFace(std::stringstream& lineStream, size_t compt);
 	void	CreateTriangle(const std::vector<Vector3d>& vecVertex, size_t lineNb);
 	void	FanTriangulation(const std::vector<Vector3d>& faceVertices);
+	void	ComputeCenter();
 };
 
 // Utils

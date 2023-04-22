@@ -12,7 +12,7 @@ Obj::Obj(std::string fileName)
 		std::string line;
 		while(getline(file, line))
 		{
-			ParseLine({line}, lineNb);
+			this->ParseLine({line}, lineNb);
 			++lineNb;
 		}
 		file.close();
@@ -20,6 +20,7 @@ Obj::Obj(std::string fileName)
 	else
 		throw FileException("can not read file");
 
+	this->ComputeCenter();
 	vecVertex.clear();
 }
 
@@ -31,9 +32,9 @@ void Obj::ParseLine(std::string line, size_t lineNb)
 	if (!getline(lineStream, token, ' '))
 		return;
 	if (token == "v")
-		ParseVertex(lineStream, lineNb);
+		this->ParseVertex(lineStream, lineNb);
 	else if (token == "f")
-		ParseFace(lineStream, lineNb);
+		this->ParseFace(lineStream, lineNb);
 	else if (token.front() != '#')
 		std::cout << "Unknown element at l" << lineNb << std::endl;
 }
@@ -57,7 +58,7 @@ void	Obj::ParseVertex(std::stringstream& lineStream, size_t lineNb)
 	if (compt != 3)
 		throw FileException("Invalid number of arguments for a vertex", lineNb);
 
-	vecVertex.emplace_back(vertex);
+	this->vecVertex.emplace_back(vertex);
 }
 
 void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
@@ -87,7 +88,7 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 
 	if (faceVertices.size() < 3)
 		throw FileException("Unvalid face : not enough vertices", lineNb);
-	CreateTriangle(faceVertices, lineNb);
+	this->CreateTriangle(faceVertices, lineNb);
 }
 
 void	Obj::CreateTriangle(const std::vector<Vector3d>& faceVertices, size_t lineNb)
@@ -105,7 +106,7 @@ void	Obj::CreateTriangle(const std::vector<Vector3d>& faceVertices, size_t lineN
 	else if (!IsPolygoneConvex(vecEdges))
 		std::cerr << "l" << lineNb << ": face is concave" << std::endl;
 	else
-		FanTriangulation(faceVertices);
+		this->FanTriangulation(faceVertices);
 }
 
 void	Obj::FanTriangulation(const std::vector<Vector3d>& faceVertices)
@@ -166,4 +167,13 @@ bool	IsPolygoneConvex(const std::vector<Vector3d>& vecEdges)
 	return true;
 }
 
+void	Obj::ComputeCenter()
+{
+	Vector3d	vecCenter(0);
 
+	for (const auto& vertex : this->vecVertex)
+		vecCenter = vecCenter + vertex;
+	this->centerPoint[0] = vecCenter[0] / (GLfloat)this->vecVertex.size();
+	this->centerPoint[1] = vecCenter[1] / (GLfloat)this->vecVertex.size();
+	this->centerPoint[2] = vecCenter[2] / (GLfloat)this->vecVertex.size();
+}
