@@ -69,6 +69,9 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 	while (getline(lineStream, token, ' '))
 	{
 		size_t	id;
+
+		if (token.size() == 0)
+			continue;
 		try
 			{id = std::stoul(token);}
 		catch (const std::exception& e)
