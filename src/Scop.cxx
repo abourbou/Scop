@@ -4,11 +4,16 @@
 #include "Obj.hpp"
 #include "Rendering.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
+	if (argc != 2)
+	{
+		std::cerr << "Usage: ./Scop [OBJ]" << std::endl;
+		return 0;
+	}
     try
     {
-        Obj obj("test.obj");
+        Obj obj(argv[1]);
 		rendering(obj);
     }
     catch(const std::exception& e)

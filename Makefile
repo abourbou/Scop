@@ -65,7 +65,7 @@ fclean	:	clean
 re		:	fclean all
 
 run : all
-	 ./$(NAME)
+	 ./$(NAME) test.obj
 
 help	:
 	@ printf "$(RESET)Welcom to Scop a project of graphic computing. \n$(RESET)"
