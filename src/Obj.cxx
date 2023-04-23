@@ -145,7 +145,7 @@ bool	IsPolygonePlane(const std::vector<Vector3d>& vecEdges)
 
 	for (size_t i = 2; i < vecEdges.size(); ++i)
 	{
-		if (std::abs(normal.dotProduct(vecEdges[i])) > 1e-8)
+		if (std::abs(normal.dotProduct(vecEdges[i])) > 5e-2)
 			return false;
 	}
 

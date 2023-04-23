@@ -63,18 +63,13 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj.vecTriangle.size(), obj.vecTriangle.data(), GL_STATIC_DRAW);
 
-	// Create MVP : Model View Projection
+	// Create View and Projection matrices
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-
 	auto Projection = PerspectiveProj(45.f, 4.f/3.f, 0.1f, 100.f);
-	auto View = ViewMatrix(Vector3<GLfloat>{{4,3,-3}},
-						   Vector3<GLfloat>{{0,0,0}},
+	// TODO handle distance depending on object size
+	auto View = ViewMatrix(Vector3<GLfloat>{{6,0,0}},
+						   obj.centerPoint,
 						   Vector3<GLfloat>{{0,1,0}});
-	auto Model = Translation(0.f,0.f,0.f) * Rotation(0.f, Vector3<GLfloat>{{0,0,1}}) * Matrix<GLfloat,4,4>::Identity();
-
-	auto MVP = Projection * View * Model;
-	// openGL use column major matrix so we need to transpose final matrix
-	MVP = transpose(MVP);
 
 	do{
 		// Clear the screen
@@ -82,7 +77,20 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 		// Use our shader
 		glUseProgram(programID);
 
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP(0,0));
+		// Make the object rotate around himself
+		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+							std::chrono::system_clock::now().time_since_epoch());
+		GLfloat rotPerMs = 0.036;
+		GLfloat angle = rotPerMs * (ms.count() % 10000);
+		auto Model = Translation(obj.centerPoint[0], obj.centerPoint[1], obj.centerPoint[2])
+				     * Rotation(angle, Vector3<GLfloat>{{0,-1,0}})
+				     * Translation(-obj.centerPoint[0], -obj.centerPoint[1], -obj.centerPoint[2]);
+
+		auto MVP = Projection * View * Model;
+
+		// openGL use column major matrix so we need to transpose final matrix
+		auto t_MVP = transpose(MVP);
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &t_MVP(0,0));
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);

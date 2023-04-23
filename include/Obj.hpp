@@ -59,7 +59,7 @@ class Obj
 		//every normal are 3 float
 		std::vector<GLfloat>		vecNormal;
 		// Center point of the polygon
-		GLfloat						centerPoint[3];
+		Vector3<GLfloat>			centerPoint;
 
 	private:
 		std::vector<Vector3d>			vecVertex;
