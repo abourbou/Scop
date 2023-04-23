@@ -70,20 +70,17 @@ Matrix<scal, 4, 4>	ViewMatrix(const Vector3<scal>& eye, const Vector3<scal>& cen
 	Matrix<scal,4,4> result = Matrix<scal,4,4>::Identity();
 
 	result(0,0) = rightAxis[0];
-	result(1,0) = rightAxis[1];
-	result(2,0) = rightAxis[2];
-
-	result(0,1) = upAxis[0];
+	result(0,1) = rightAxis[1];
+	result(0,2) = rightAxis[2];
+	result(1,0) = upAxis[0];
 	result(1,1) = upAxis[1];
-	result(2,1) = upAxis[2];
-
-	result(0,2) = forward[0];
-	result(1,2) = forward[1];
+	result(1,2) = upAxis[2];
+	result(2,0) = forward[0];
+	result(2,1) = forward[1];
 	result(2,2) = forward[2];
-
-	result(3,0) = -rightAxis.dotProduct(eye);
-	result(3,1) = -upAxis.dotProduct(eye);
-	result(3,2) = -forward.dotProduct(eye);
+	result(0,3) = -rightAxis.dotProduct(eye);
+	result(1,3) = -upAxis.dotProduct(eye);
+	result(2,3) = -forward.dotProduct(eye);
 
 	return result;
 }
@@ -98,8 +95,8 @@ Matrix<scal, 4, 4>	PerspectiveProj(scal fov, scal screenRatio, scal zNear, scal 
 	result(0, 0) = 1 / (screenRatio * tanHalfFov);
 	result(1, 1) = 1 / tanHalfFov;
 	result(2, 2) = - (zFar + zNear) / (zFar - zNear);
-	result(2, 3) = - 1;
-	result(3, 2) = (-2 * zFar * zNear) / (zFar - zNear);
+	result(3, 2) = - 1;
+	result(2, 3) = (-2 * zFar * zNear) / (zFar - zNear);
 
 	return result;
 }
@@ -112,13 +109,9 @@ Matrix<scal, M, N>	outerProduct(const Matrix<scal,M,1>& m, const Matrix<scal,N,1
 {
 	Matrix<scal,M,N> result;
 
-	std::cout << "start of " << __FUNCTION__ << std::endl;
-	std::cout << M << " " << N << std::endl;
-	std::cout << "result : " << result << std::endl;
 	for (size_t i = 0; i < M; ++i)
 		for (size_t j = 0; j < N; ++j)
 			result(i,j) = m[i] * n[j];
-	std::cout << "end of " << __FUNCTION__ << std::endl;
 
 	return result;
 }

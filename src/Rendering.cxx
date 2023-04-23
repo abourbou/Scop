@@ -48,7 +48,7 @@ GLFWwindow*	init_openGL()
 	return window;
 }
 
-void	loop_draw(GLFWwindow* window, const Obj &obj)
+void	loopDraw(GLFWwindow* window, const Obj &obj)
 {
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -63,11 +63,26 @@ void	loop_draw(GLFWwindow* window, const Obj &obj)
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj.vecTriangle.size(), obj.vecTriangle.data(), GL_STATIC_DRAW);
 
+	// Create MVP : Model View Projection
+	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+
+	auto Projection = PerspectiveProj(45.f, 4.f/3.f, 0.1f, 100.f);
+	auto View = ViewMatrix(Vector3<GLfloat>{{4,3,-3}},
+						   Vector3<GLfloat>{{0,0,0}},
+						   Vector3<GLfloat>{{0,1,0}});
+	auto Model = Translation(0.f,0.f,0.f) * Rotation(0.f, Vector3<GLfloat>{{0,0,1}}) * Matrix<GLfloat,4,4>::Identity();
+
+	auto MVP = Projection * View * Model;
+	// openGL use column major matrix so we need to transpose final matrix
+	MVP = transpose(MVP);
+
 	do{
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Use our shader
 		glUseProgram(programID);
+
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP(0,0));
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
@@ -81,8 +96,7 @@ void	loop_draw(GLFWwindow* window, const Obj &obj)
 			(void*)0            // array buffer offset
 		);
 
-		// Draw the triangle !
-		glDrawArrays(GL_TRIANGLES, 0, obj.vecTriangle.size()); // 3 indices starting at 0 -> 1 triangle
+		glDrawArrays(GL_TRIANGLES, 0, obj.vecTriangle.size() / 3);
 
 		glDisableVertexAttribArray(0);
 
@@ -106,7 +120,7 @@ void	loop_draw(GLFWwindow* window, const Obj &obj)
 void	rendering(Obj& obj)
 {
 	GLFWwindow*	window = init_openGL();
-	loop_draw(window, obj);
+	loopDraw(window, obj);
 
 	(void)obj;
 }
