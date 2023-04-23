@@ -10,6 +10,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <GL/glew.h>
+
 #include "Matrix.hpp"
 
 //? Obj type handles :
@@ -22,12 +24,6 @@
 //! s
 //TODO o maybe later
 //TODO g maybe later
-
-struct Triangle
-{
-	Vector3d vertices[3];
-	Vector3d vertexNormal;
-};
 
 class FileException : public std::exception {
 	public:
@@ -58,16 +54,20 @@ class Obj
 		Obj() = delete;
 		Obj(std::string fileName);
 
+		//every Triangle are 3 float
+		std::vector<GLfloat>		vecTriangle;
+		//every normal are 3 float
+		std::vector<GLfloat>		vecNormal;
+
 	private:
 		std::vector<Vector3d>			vecVertex;
-		std::multimap<int, Triangle>	mapTriangle;
 
 	// Utils
 	void	ParseLine(std::string line, size_t compt);
 	void	ParseVertex(std::stringstream& lineStream, size_t compt);
 	void	ParseFace(std::stringstream& lineStream, size_t compt);
-	void	Triangulation(const std::vector<Vector3d>& vecVertex, size_t lineNb);
-	void	CreateTriangle(const std::vector<Vector3d>& faceVertices);
+	void	CreateTriangle(const std::vector<Vector3d>& vecVertex, size_t lineNb);
+	void	FanTriangulation(const std::vector<Vector3d>& faceVertices);
 };
 
 // Utils

@@ -1,15 +1,5 @@
 
-#include <iostream>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <stdio.h>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-// #include <algorithm>
-
+#include "Rendering.hpp"
 
 GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path)
 {
@@ -29,7 +19,7 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	}
 	else
 	{
-		printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", vertex_file_path);
+		printf("Impossible to open %s. Are you in the right directory ?\n", vertex_file_path);
 		getchar();
 		return 0;
 	}
@@ -37,7 +27,7 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	// Read the Fragment Shader code from the file
 	std::string FragmentShaderCode;
 	std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
-	if(FragmentShaderStream.is_open())
+	if (FragmentShaderStream.is_open())
 	{
 		std::stringstream sstr;
 		sstr << FragmentShaderStream.rdbuf();
@@ -57,7 +47,7 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	// Check Vertex Shader
 	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if (InfoLogLength > 0 )
+	if (InfoLogLength > 0)
 	{
 		std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
 		glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
@@ -90,7 +80,8 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	// Check the program
 	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
 	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 ){
+	if (InfoLogLength > 0)
+	{
 		std::vector<char> ProgramErrorMessage(InfoLogLength+1);
 		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
 		printf("%s\n", &ProgramErrorMessage[0]);

@@ -16,9 +16,11 @@ Obj::Obj(std::string fileName)
 			++lineNb;
 		}
 		file.close();
-   }
-   else
-	throw FileException("can not read file");
+	}
+	else
+		throw FileException("can not read file");
+
+	vecVertex.clear();
 }
 
 void Obj::ParseLine(std::string line, size_t lineNb)
@@ -82,10 +84,10 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 
 	if (faceVertices.size() < 3)
 		throw FileException("Unvalid face : not enough vertices", lineNb);
-	Triangulation(faceVertices, lineNb);
+	CreateTriangle(faceVertices, lineNb);
 }
 
-void	Obj::Triangulation(const std::vector<Vector3d>& faceVertices, size_t lineNb)
+void	Obj::CreateTriangle(const std::vector<Vector3d>& faceVertices, size_t lineNb)
 {
 	std::vector<Vector3d>	vecEdges;
 	size_t					nbVert = faceVertices.size();
@@ -100,24 +102,31 @@ void	Obj::Triangulation(const std::vector<Vector3d>& faceVertices, size_t lineNb
 	else if (!IsPolygoneConvex(vecEdges))
 		std::cerr << "l" << lineNb << ": face is concave" << std::endl;
 	else
-		CreateTriangle(faceVertices);
+		FanTriangulation(faceVertices);
 }
 
-void	Obj::CreateTriangle(const std::vector<Vector3d>& faceVertices)
+void	Obj::FanTriangulation(const std::vector<Vector3d>& faceVertices)
 {
-	static int id = 0;
-
-	++id;
+	// Use fan triangulation
 	for (size_t i = 1; i < faceVertices.size() - 1; ++i)
 	{
-		Triangle triangle;
-		triangle.vertices[0] = faceVertices[0];
-		triangle.vertices[1] = faceVertices[i];
-		triangle.vertices[2] = faceVertices[i + 1];
-		triangle.vertexNormal = (triangle.vertices[1] - triangle.vertices[0]).crossProduct(triangle.vertices[2] - triangle.vertices[1]);
-		triangle.vertexNormal.normalize();
+		// Create triangle
+		this->vecTriangle.push_back(faceVertices[0][0]);
+		this->vecTriangle.push_back(faceVertices[0][1]);
+		this->vecTriangle.push_back(faceVertices[0][2]);
+		this->vecTriangle.push_back(faceVertices[i][0]);
+		this->vecTriangle.push_back(faceVertices[i][1]);
+		this->vecTriangle.push_back(faceVertices[i][2]);
+		this->vecTriangle.push_back(faceVertices[i + 1][0]);
+		this->vecTriangle.push_back(faceVertices[i + 1][1]);
+		this->vecTriangle.push_back(faceVertices[i + 1][2]);
 
-		this->mapTriangle.insert(std::pair<int, Triangle>(id, triangle));
+		// Create triangle normal
+		auto triangleNormal = (faceVertices[i] - faceVertices[0]).crossProduct(faceVertices[i + 1] - faceVertices[i]);
+		triangleNormal.normalize();
+		this->vecNormal.push_back(triangleNormal[0]);
+		this->vecNormal.push_back(triangleNormal[1]);
+		this->vecNormal.push_back(triangleNormal[2]);
 	}
 }
 
