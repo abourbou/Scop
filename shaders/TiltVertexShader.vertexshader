@@ -2,12 +2,19 @@
 
 // Input vertex data, different for all executions of this shader.
 layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 normalVertex;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 MVP;
 
+out float fragmentColor;
+
 void main()
 {
+	// Color depends on tilt of the surface
+	float tilt = dot(normalVertex, normalize(vec3(1,1,0)));
+	fragmentColor = abs(tilt) / 3.f + 0.6666666f;
+
 	// Output position of the vertex, in clip space : MVP * position
     gl_Position= MVP * vec4(vertexPosition_modelspace,1);
 }

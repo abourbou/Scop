@@ -50,12 +50,13 @@ GLFWwindow*	init_openGL()
 
 void	loopDraw(GLFWwindow* window, const Obj &obj)
 {
+	// Create VOA for vertex
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders("shaders/SimpleVertexShader.vertexshader", "shaders/SimpleFragmentShader.fragmentshader");
+	GLuint programID = LoadShaders("shaders/TiltVertexShader.vertexshader", "shaders/TiltFragmentShader.fragmentshader");
 
 	// Bind our list of triangle
 	GLuint vertexbuffer;
@@ -63,10 +64,23 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj.vecTriangle.size(), obj.vecTriangle.data(), GL_STATIC_DRAW);
 
+	// Create VOA for normal
+	GLuint NormalArrayID;
+	glGenVertexArrays(1, &NormalArrayID);
+	glBindVertexArray(NormalArrayID);
+
+	// Bind list of normal
+	GLuint normalbuffer;
+	glGenBuffers(1, &normalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj.vecNormal.size(), obj.vecNormal.data(), GL_STATIC_DRAW);
+
 	// Create View and Projection matrices
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 	auto Projection = PerspectiveProj(45.f, 4.f/3.f, 0.1f, 100.f);
 	// TODO handle distance depending on object size
+	// TODO problem rotation at 2 specific angles
+	// TODO problem perspective matrix for the cube
 	auto View = ViewMatrix(Vector3<GLfloat>{{6,0,0}},
 						   obj.centerPoint,
 						   Vector3<GLfloat>{{0,1,0}});
@@ -93,10 +107,22 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &t_MVP(0,0));
 
 		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(VertexArrayID - 1);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glVertexAttribPointer(
-			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			VertexArrayID - 1,  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+
+		// 2nd attribute buffer : normal
+		glEnableVertexAttribArray(NormalArrayID - 1);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glVertexAttribPointer(
+			NormalArrayID - 1,  // attribute 0. No particular reason for 0, but must match the layout in the shader.
 			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
@@ -105,8 +131,8 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 		);
 
 		glDrawArrays(GL_TRIANGLES, 0, obj.vecTriangle.size() / 3);
-
-		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(VertexArrayID - 1);
+		glDisableVertexAttribArray(NormalArrayID - 1);
 
 		// Swap buffers
 		glfwSwapBuffers(window);

@@ -125,12 +125,15 @@ void	Obj::FanTriangulation(const std::vector<Vector3d>& faceVertices)
 		this->vecTriangle.push_back(faceVertices[i + 1][1]);
 		this->vecTriangle.push_back(faceVertices[i + 1][2]);
 
-		// Create triangle normal
+		// Create triangle normal for each vertex
 		auto triangleNormal = (faceVertices[i] - faceVertices[0]).crossProduct(faceVertices[i + 1] - faceVertices[i]);
 		triangleNormal.normalize();
-		this->vecNormal.push_back(triangleNormal[0]);
-		this->vecNormal.push_back(triangleNormal[1]);
-		this->vecNormal.push_back(triangleNormal[2]);
+		for (auto _i = 0; _i < 3; ++_i)
+		{
+			this->vecNormal.push_back(triangleNormal[0]);
+			this->vecNormal.push_back(triangleNormal[1]);
+			this->vecNormal.push_back(triangleNormal[2]);
+		}
 	}
 }
 
