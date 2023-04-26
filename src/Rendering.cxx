@@ -85,6 +85,9 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 						   obj.centerPoint,
 						   Vector3<GLfloat>{{0,1,0}});
 
+	std::chrono::milliseconds start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+						std::chrono::system_clock::now().time_since_epoch());
+
 	do{
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -95,7 +98,8 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
 							std::chrono::system_clock::now().time_since_epoch());
 		GLfloat rotPerMs = 0.036;
-		GLfloat angle = rotPerMs * (ms.count() % 10000);
+		GLfloat angle = -10. + ((ms.count() - start_time.count()) % 10000) * rotPerMs;
+		// std::cout << "angle: " << angle << std::endl;
 		auto Model = Translation(obj.centerPoint[0], obj.centerPoint[1], obj.centerPoint[2])
 				     * Rotation(angle, Vector3<GLfloat>{{0,-1,0}})
 				     * Translation(-obj.centerPoint[0], -obj.centerPoint[1], -obj.centerPoint[2]);
