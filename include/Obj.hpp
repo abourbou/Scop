@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <vector>
 #include <set>
 #include <map>
@@ -57,6 +58,12 @@ class FileException : public std::exception {
 		std::string Msg = "Error File";
 };
 
+struct FaceVertex
+{
+	Vector3f			vertice;
+	Vector<float, 2>	texCoord{-1};
+};
+
 class Obj
 {
 	public :
@@ -88,8 +95,10 @@ class Obj
 	void	ParseNormal(std::stringstream& lineStream, size_t compt);
 	void	ParseTextureCoord(std::stringstream& lineStream, size_t compt);
 	void	ParseFace(std::stringstream& lineStream, size_t compt);
-	void	CreateTriangle(const std::vector<Vector3f>& vecObjVertex, size_t lineNb);
-	void	FanTriangulation(const std::vector<Vector3f>& faceVertices);
+	FaceVertex	ParseFaceVert(const std::string& faceElem, Vector3f& normal,
+								std::set<size_t>& setVertexId);
+	void	CreateTriangle(const std::vector<FaceVertex>& vecObjVertex, const Vector3f& normal, size_t lineNb);
+	void	FanTriangulation(const std::vector<FaceVertex>& faceVertices, Vector3f normal);
 	void	ComputeCenter();
 };
 

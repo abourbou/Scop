@@ -107,7 +107,7 @@ void	Obj::ParseTextureCoord(std::stringstream& lineStream, size_t lineNb)
 		{
 			UV[compt] = std::stod(token);
 			if (UV[compt] < 0. || UV[compt] > 1.)
-				throw std::invalid_argument( "invalid value for UV");
+				throw std::invalid_argument( "invalid UV value");
 		}
 		catch(const std::exception& e)
 			{throw FileException("Invalid UV value", lineNb);}
@@ -119,78 +119,138 @@ void	Obj::ParseTextureCoord(std::stringstream& lineStream, size_t lineNb)
 	this->vecObjUV.emplace_back(UV);
 }
 
+// Parse a face vertice
+// Valid format : vertId OR vertId//normalId OR vertId/textCoord/normalId
+FaceVertex	Obj::ParseFaceVert(const std::string& faceElem, Vector3f& normal,
+								std::set<size_t>& setVertexId)
+{
+	FaceVertex faceVert;
+	size_t id;
+
+
+	// format vertId
+	if (faceElem.find('/') == faceElem.npos)
+	{
+		id = std::stoul(faceElem);
+		if (setVertexId.find(id) != setVertexId.end())
+			throw std::invalid_argument("vertex id is duplicated");
+		if (id == 0 || id > this->vecObjVertex.size())
+			throw std::invalid_argument("vextex id is out of range");
+		setVertexId.emplace(id);
+		faceVert.vertice = this->vecObjVertex[id-1];
+		return faceVert;
+	}
+
+	// format vertId//normalId OR vertId/textCoord/normalId
+	if (std::count(faceElem.begin(), faceElem.end(), '/') != 2)
+		throw std::invalid_argument("invalid number of /");
+
+	std::stringstream tokenStream{faceElem, std::ios_base::in};
+	size_t compt = 0;
+	std::string token;
+	while (getline(tokenStream, token, '/') && compt < 3)
+	{
+		if (token.empty())
+		{
+			if (compt == 0 || compt == 2)
+				throw std::invalid_argument("empty token in face element");
+			++compt;
+			continue;
+		}
+		id = std::stoul(token);
+		// Vertex coord
+		if (compt == 0)
+		{
+			if (setVertexId.find(id) != setVertexId.end())
+				throw std::invalid_argument("vertex id is duplicated");
+			if (id == 0 || id > this->vecObjVertex.size())
+				throw std::invalid_argument("vertex id is out of range");
+			setVertexId.emplace(id);
+			faceVert.vertice = this->vecObjVertex[id-1];
+		} // UV coord
+		else if (compt == 1)
+		{
+			if (id == 0 || id > this->vecObjUV.size())
+				throw std::invalid_argument("uv id is out of range");
+			faceVert.texCoord = this->vecObjUV[id-1];
+		} // Normal coord
+		else if (compt == 2)
+		{
+			if (id == 0 || id > this->vecObjNormal.size())
+				throw std::invalid_argument("normal id is out of range");
+			normal = this->vecObjNormal[id-1];
+			break;
+		}
+		++compt;
+	}
+	return faceVert;
+}
+
 void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 {
 	std::string				token;
 	std::set<size_t>		setVertexId;
-	std::vector<Vector3f>	faceVertices;
+	std::vector<FaceVertex>	faceVertices2;
+	Vector3f				normal;
 
 	while (getline(lineStream, token, ' '))
 	{
-		size_t	id;
-
-		if (token.size() == 0)
+		if (token.empty() || std::isspace(token.front()))
 			continue;
-		try
-			{id = std::stoul(token);}
+		try {faceVertices2.emplace_back(ParseFaceVert(token, normal, setVertexId));}
 		catch (const std::exception& e)
-			{throw FileException("invalid face value", lineNb);}
-
-		if (setVertexId.find(id) != setVertexId.end())
-			throw FileException("duplicate vertex id for a face", lineNb);
-		if (id > this->vecObjVertex.size())
-			throw FileException("non existing vertex id for a face", lineNb);
-		setVertexId.emplace(id);
-		faceVertices.push_back(this->vecObjVertex[id - 1]);
+		{throw FileException(std::string("invalid face format : ") + e.what(), lineNb);}
 	}
 
-	if (faceVertices.size() < 3)
+	if (faceVertices2.size() < 3)
 		throw FileException("Unvalid face : not enough vertices", lineNb);
-	this->CreateTriangle(faceVertices, lineNb);
+	this->CreateTriangle(faceVertices2, normal, lineNb);
 }
 
-void	Obj::CreateTriangle(const std::vector<Vector3f>& faceVertices, size_t lineNb)
+void	Obj::CreateTriangle(const std::vector<FaceVertex>& faceVertices, const Vector3f& normal, size_t lineNb)
 {
 	std::vector<Vector3f>	vecEdges;
 	size_t					nbVert = faceVertices.size();
 
-	if (nbVert < 3)
-		return;
 	for (size_t i = 0; i < nbVert; ++i)
-		vecEdges.push_back(faceVertices[(i + 1) % nbVert] - faceVertices[i % nbVert]);
+		vecEdges.push_back(faceVertices[(i + 1) % nbVert].vertice - faceVertices[i % nbVert].vertice);
 
 	if (!IsPolygonePlane(vecEdges))
-		std::cerr << "l" << lineNb << ": face is not plane" << std::endl;
+		throw FileException("face is not plane", lineNb);
 	else if (!IsPolygoneConvex(vecEdges))
-		std::cerr << "l" << lineNb << ": face is concave" << std::endl;
+		throw FileException("face is concave", lineNb);
 	else
-		this->FanTriangulation(faceVertices);
+		this->FanTriangulation(faceVertices, normal);
 }
 
-void	Obj::FanTriangulation(const std::vector<Vector3f>& faceVertices)
+void	Obj::FanTriangulation(const std::vector<FaceVertex>& faceVertices, Vector3f normal)
 {
 	// Use fan triangulation
 	for (size_t i = 1; i < faceVertices.size() - 1; ++i)
 	{
 		// Create triangle
-		this->vecTriangle.push_back(faceVertices[0][0]);
-		this->vecTriangle.push_back(faceVertices[0][1]);
-		this->vecTriangle.push_back(faceVertices[0][2]);
-		this->vecTriangle.push_back(faceVertices[i][0]);
-		this->vecTriangle.push_back(faceVertices[i][1]);
-		this->vecTriangle.push_back(faceVertices[i][2]);
-		this->vecTriangle.push_back(faceVertices[i + 1][0]);
-		this->vecTriangle.push_back(faceVertices[i + 1][1]);
-		this->vecTriangle.push_back(faceVertices[i + 1][2]);
+		this->vecTriangle.push_back(faceVertices[0].vertice[0]);
+		this->vecTriangle.push_back(faceVertices[0].vertice[1]);
+		this->vecTriangle.push_back(faceVertices[0].vertice[2]);
+		this->vecTriangle.push_back(faceVertices[i].vertice[0]);
+		this->vecTriangle.push_back(faceVertices[i].vertice[1]);
+		this->vecTriangle.push_back(faceVertices[i].vertice[2]);
+		this->vecTriangle.push_back(faceVertices[i + 1].vertice[0]);
+		this->vecTriangle.push_back(faceVertices[i + 1].vertice[1]);
+		this->vecTriangle.push_back(faceVertices[i + 1].vertice[2]);
 
 		// Create triangle normal for each vertex
-		auto triangleNormal = (faceVertices[i] - faceVertices[0]).crossProduct(faceVertices[i + 1] - faceVertices[i]);
-		triangleNormal.normalize();
+		if (normal[0] == 0.f && normal[1] == 0.f && normal[2] == 0.f)
+		{
+			normal = (faceVertices[i].vertice - faceVertices[0].vertice)
+									.crossProduct(faceVertices[i + 1].vertice - faceVertices[i].vertice);
+			normal.normalize();
+		}
 		for (auto _i = 0; _i < 3; ++_i)
 		{
-			this->vecNormal.push_back(triangleNormal[0]);
-			this->vecNormal.push_back(triangleNormal[1]);
-			this->vecNormal.push_back(triangleNormal[2]);
+			this->vecNormal.push_back(normal[0]);
+			this->vecNormal.push_back(normal[1]);
+			this->vecNormal.push_back(normal[2]);
 		}
 	}
 }
