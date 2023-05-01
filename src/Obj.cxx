@@ -23,7 +23,11 @@ Obj::Obj(std::string fileName)
 		throw FileException("can not read file");
 
 	this->ComputeCenter();
-	vecVertex.clear();
+
+	// Free obj buffer memory
+	vecObjVertex.clear();
+	vecObjNormal.clear();
+	vecObjUV.clear();
 }
 
 void Obj::ParseLine(std::string line, size_t lineNb)
@@ -35,6 +39,10 @@ void Obj::ParseLine(std::string line, size_t lineNb)
 		return;
 	if (token == "v")
 		this->ParseVertex(lineStream, lineNb);
+	else if (token == "vn")
+		this->ParseNormal(lineStream, lineNb);
+	else if (token == "vt")
+		this->ParseTextureCoord(lineStream, lineNb);
 	else if (token == "f")
 		this->ParseFace(lineStream, lineNb);
 	else if (token.front() != '#')
@@ -60,7 +68,55 @@ void	Obj::ParseVertex(std::stringstream& lineStream, size_t lineNb)
 	if (compt != 3)
 		throw FileException("Invalid number of arguments for a vertex", lineNb);
 
-	this->vecVertex.emplace_back(vertex);
+	this->vecObjVertex.emplace_back(vertex);
+}
+
+void	Obj::ParseNormal(std::stringstream& lineStream, size_t lineNb)
+{
+	std::string	token;
+	Vector3f	normal;
+	size_t		compt = 0;
+
+	while (getline(lineStream, token, ' '))
+	{
+		if (token.size() == 0)
+			continue;
+		try
+			{normal[compt] = std::stod(token);}
+		catch(const std::exception& e)
+			{throw FileException("Invalid normal value", lineNb);}
+		compt++;
+	}
+	if (compt != 3)
+		throw FileException("Invalid number of arguments for a normal", lineNb);
+
+	this->vecObjNormal.emplace_back(normal);
+}
+
+void	Obj::ParseTextureCoord(std::stringstream& lineStream, size_t lineNb)
+{
+	std::string		token;
+	Vector<float,2>	UV;
+	size_t		compt = 0;
+
+	while (getline(lineStream, token, ' '))
+	{
+		if (token.size() == 0)
+			continue;
+		try
+		{
+			UV[compt] = std::stod(token);
+			if (UV[compt] < 0. || UV[compt] > 1.)
+				throw std::invalid_argument( "invalid value for UV");
+		}
+		catch(const std::exception& e)
+			{throw FileException("Invalid UV value", lineNb);}
+		compt++;
+	}
+	if (compt != 2)
+		throw FileException("Invalid number of arguments for a texture coordinate", lineNb);
+
+	this->vecObjUV.emplace_back(UV);
 }
 
 void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
@@ -82,10 +138,10 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 
 		if (setVertexId.find(id) != setVertexId.end())
 			throw FileException("duplicate vertex id for a face", lineNb);
-		if (id > this->vecVertex.size())
+		if (id > this->vecObjVertex.size())
 			throw FileException("non existing vertex id for a face", lineNb);
 		setVertexId.emplace(id);
-		faceVertices.push_back(this->vecVertex[id - 1]);
+		faceVertices.push_back(this->vecObjVertex[id - 1]);
 	}
 
 	if (faceVertices.size() < 3)
@@ -176,21 +232,21 @@ void	Obj::ComputeCenter()
 {
 	Vector3<GLfloat>	vecCenter(0);
 
-	for (const auto& vertex : this->vecVertex)
+	for (const auto& vertex : this->vecObjVertex)
 		vecCenter = vecCenter + vertex;
-	vecCenter = vecCenter * (1 / (GLfloat)this->vecVertex.size());
+	vecCenter = vecCenter * (1 / (GLfloat)this->vecObjVertex.size());
 	this->centerPoint[0] = vecCenter[0];
 	this->centerPoint[1] = vecCenter[1];
 	this->centerPoint[2] = vecCenter[2];
 
 	this->maxDistCenter = 0;
 	this->meanDistCenter = 0;
-	for (const auto& vertex : this->vecVertex)
+	for (const auto& vertex : this->vecObjVertex)
 	{
 		auto distCenter = (vertex - vecCenter).euclidNorm();
 		meanDistCenter += distCenter;
 		if (distCenter > maxDistCenter)
 			maxDistCenter = distCenter;
 	}
-	meanDistCenter /= (GLfloat)this->vecVertex.size();
+	meanDistCenter /= (GLfloat)this->vecObjVertex.size();
 }

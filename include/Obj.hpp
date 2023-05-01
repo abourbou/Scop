@@ -16,8 +16,8 @@
 
 //? Obj type handles :
 //* v vertex
-//TODO vt maybe later
-//! vn vertex normal
+//* vt maybe later
+//* vn vertex normal
 //* f face
 //! mtlib
 //! usemtfl
@@ -63,10 +63,13 @@ class Obj
 		Obj() = delete;
 		Obj(std::string fileName);
 
-		//every Triangle are 3 float
+		// Every Triangle are 3 float
 		std::vector<GLfloat>		vecTriangle;
-		//every normal are 3 float
+		// Every normal are 3 float
 		std::vector<GLfloat>		vecNormal;
+		// Every UV are 2 float
+		std::vector<GLfloat>		vecUV;
+
 		// Center point of the polygon
 		Vector3<GLfloat>			centerPoint;
 		// Mean distance from centerPoint
@@ -75,13 +78,17 @@ class Obj
 		GLfloat						maxDistCenter;
 
 	private:
-		std::vector<Vector3<float>>			vecVertex;
+		std::vector<Vector3f>			vecObjVertex;
+		std::vector<Vector3f>			vecObjNormal;
+		std::vector<Vector<float,2>>	vecObjUV;
 
 	// Utils
 	void	ParseLine(std::string line, size_t compt);
 	void	ParseVertex(std::stringstream& lineStream, size_t compt);
+	void	ParseNormal(std::stringstream& lineStream, size_t compt);
+	void	ParseTextureCoord(std::stringstream& lineStream, size_t compt);
 	void	ParseFace(std::stringstream& lineStream, size_t compt);
-	void	CreateTriangle(const std::vector<Vector3f>& vecVertex, size_t lineNb);
+	void	CreateTriangle(const std::vector<Vector3f>& vecObjVertex, size_t lineNb);
 	void	FanTriangulation(const std::vector<Vector3f>& faceVertices);
 	void	ComputeCenter();
 };
