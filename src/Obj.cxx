@@ -12,7 +12,9 @@ Obj::Obj(std::string fileName)
 		std::string line;
 		while(getline(file, line))
 		{
-			this->ParseLine({line}, lineNb);
+			try {this->ParseLine({line}, lineNb);}
+			catch(const std::exception& e)
+			{PRINT_WARNING(e.what());}
 			++lineNb;
 		}
 		file.close();
@@ -36,7 +38,7 @@ void Obj::ParseLine(std::string line, size_t lineNb)
 	else if (token == "f")
 		this->ParseFace(lineStream, lineNb);
 	else if (token.front() != '#')
-		std::cout << "Unknown element at l" << lineNb << std::endl;
+		throw FileException("Unknown element \"" + token + "\"", lineNb);
 }
 
 void	Obj::ParseVertex(std::stringstream& lineStream, size_t lineNb)

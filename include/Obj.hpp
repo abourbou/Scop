@@ -25,6 +25,15 @@
 //TODO o maybe later
 //TODO g maybe later
 
+#define DEFAULT_COLOR "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+
+#define PRINT_INFO(s) std::cout << GREEN << s << DEFAULT_COLOR << std::endl;
+#define PRINT_WARNING(s) std::cerr << YELLOW << "[WARNING] " << s << DEFAULT_COLOR << std::endl;
+#define PRINT_ERROR(s)   std::cerr << RED    << "[ERROR] "   << s << DEFAULT_COLOR << std::endl;
+
 class FileException : public std::exception {
 	public:
 		FileException() = default;
