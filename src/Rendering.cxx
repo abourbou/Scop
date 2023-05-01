@@ -78,9 +78,8 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 	// Create View and Projection matrices
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 	auto Projection = PerspectiveProj(45.f, 4.f/3.f, 0.1f, 100.f);
+
 	// TODO handle distance depending on object size
-	// TODO problem rotation at 2 specific angles
-	// TODO problem perspective matrix for the cube
 	auto View = ViewMatrix(Vector3<GLfloat>{{6,0,0}},
 						   obj.centerPoint,
 						   Vector3<GLfloat>{{0,1,0}});
@@ -99,9 +98,9 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 							std::chrono::system_clock::now().time_since_epoch());
 		GLfloat rotPerMs = 0.036;
 		GLfloat angle = -10. + ((ms.count() - start_time.count()) % 10000) * rotPerMs;
-		// std::cout << "angle: " << angle << std::endl;
+
 		auto Model = Translation(obj.centerPoint[0], obj.centerPoint[1], obj.centerPoint[2])
-				     * Rotation(angle, Vector3<GLfloat>{{0,-1,0}})
+				     * Ry(angle)
 				     * Translation(-obj.centerPoint[0], -obj.centerPoint[1], -obj.centerPoint[2]);
 
 		auto MVP = Projection * View * Model;
@@ -159,6 +158,4 @@ void	rendering(Obj& obj)
 {
 	GLFWwindow*	window = init_openGL();
 	loopDraw(window, obj);
-
-	(void)obj;
 }

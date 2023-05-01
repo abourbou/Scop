@@ -39,21 +39,52 @@ Matrix<scal, 4, 4> Translation(scal x, scal y, scal z)
 }
 
 // Angle in degree
-//! Warning : rotAxis MUST be normalized
 template<typename scal>
-Matrix<scal, 4, 4>	Rotation(scal angle, const Matrix<scal, 3, 1>& rotAxis)
+Matrix<scal, 4, 4>	Rx(scal angle)
 {
-	scal	cosAng = cos(angle * M_PI / 180.);
-	scal	sinAng = sin(angle * M_PI / 180.);
-	Matrix<scal, 3, 3> result3d = cosAng * Matrix<scal, 3, 3>::Identity();
+	Matrix<scal,4,4> result = Matrix<scal, 4,4>::Identity();
 
-	result3d += (1 - cosAng) * outerProduct(rotAxis, rotAxis);
-	result3d += sinAng * SkewSymmetricCrossProduct(rotAxis);
+	scal cosAngle = cos(angle * M_PI / 180.);
+	scal sinAngle = sin(angle * M_PI / 180.);
 
-	auto result = Matrix<scal, 4,4>::Identity();
-	for (size_t i = 0; i < 3; ++i)
-		for (size_t j = 0; j < 3; ++j)
-			result(i,j) = result3d(i,j);
+	result(1,1) = cosAngle;
+	result(2,2) = cosAngle;
+	result(1,2) = -1. * sinAngle;
+	result(2,1) = sinAngle;
+
+	return result;
+}
+
+// Angle in degree
+template<typename scal>
+Matrix<scal, 4, 4>	Ry(scal angle)
+{
+	Matrix<scal,4,4> result = Matrix<scal, 4,4>::Identity();
+
+	scal cosAngle = cos(angle * M_PI / 180.);
+	scal sinAngle = sin(angle * M_PI / 180.);
+
+	result(0,0) = cosAngle;
+	result(2,2) = cosAngle;
+	result(2,0) = -1. * sinAngle;
+	result(0,2) = sinAngle;
+
+	return result;
+}
+
+// Angle in degree
+template<typename scal>
+Matrix<scal, 4, 4>	Rz(scal angle)
+{
+	Matrix<scal,4,4> result = Matrix<scal, 4,4>::Identity();
+
+	scal cosAngle = cos(angle * M_PI / 180.);
+	scal sinAngle = sin(angle * M_PI / 180.);
+
+	result(0,0) = cosAngle;
+	result(1,1) = cosAngle;
+	result(0,1) = -1. * sinAngle;
+	result(1,0) = sinAngle;
 
 	return result;
 }

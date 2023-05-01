@@ -12,8 +12,8 @@ out float fragmentColor;
 void main()
 {
 	// Color depends on tilt of the surface
-	float tilt = dot(normalVertex, normalize(vec3(1,1,0)));
-	fragmentColor = abs(tilt) / 3.f + 0.6666666f;
+	float tilt = dot(normalVertex, normalize(vec3(1,0.75,0)));
+	fragmentColor = abs(tilt) / 2.f + 0.5f;
 
 	// Output position of the vertex, in clip space : MVP * position
     gl_Position= MVP * vec4(vertexPosition_modelspace,1);
