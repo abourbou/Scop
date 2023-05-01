@@ -60,19 +60,23 @@ class Obj
 		std::vector<GLfloat>		vecNormal;
 		// Center point of the polygon
 		Vector3<GLfloat>			centerPoint;
+		// Mean distance from centerPoint
+		GLfloat						meanDistCenter;
+		// Max distance from centerPoint
+		GLfloat						maxDistCenter;
 
 	private:
-		std::vector<Vector3d>			vecVertex;
+		std::vector<Vector3<float>>			vecVertex;
 
 	// Utils
 	void	ParseLine(std::string line, size_t compt);
 	void	ParseVertex(std::stringstream& lineStream, size_t compt);
 	void	ParseFace(std::stringstream& lineStream, size_t compt);
-	void	CreateTriangle(const std::vector<Vector3d>& vecVertex, size_t lineNb);
-	void	FanTriangulation(const std::vector<Vector3d>& faceVertices);
+	void	CreateTriangle(const std::vector<Vector3f>& vecVertex, size_t lineNb);
+	void	FanTriangulation(const std::vector<Vector3f>& faceVertices);
 	void	ComputeCenter();
 };
 
 // Utils
-bool	IsPolygonePlane(const std::vector<Vector3d>& vecEdges);
-bool	IsPolygoneConvex(const std::vector<Vector3d>& vecEdges);
+bool	IsPolygonePlane(const std::vector<Vector3f>& vecEdges);
+bool	IsPolygoneConvex(const std::vector<Vector3f>& vecEdges);

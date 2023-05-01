@@ -42,7 +42,7 @@ void Obj::ParseLine(std::string line, size_t lineNb)
 void	Obj::ParseVertex(std::stringstream& lineStream, size_t lineNb)
 {
 	std::string	token;
-	Vector3d	vertex;
+	Vector3f	vertex;
 	size_t		compt = 0;
 
 	while (getline(lineStream, token, ' '))
@@ -65,7 +65,7 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 {
 	std::string				token;
 	std::set<size_t>		setVertexId;
-	std::vector<Vector3d>	faceVertices;
+	std::vector<Vector3f>	faceVertices;
 
 	while (getline(lineStream, token, ' '))
 	{
@@ -91,9 +91,9 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 	this->CreateTriangle(faceVertices, lineNb);
 }
 
-void	Obj::CreateTriangle(const std::vector<Vector3d>& faceVertices, size_t lineNb)
+void	Obj::CreateTriangle(const std::vector<Vector3f>& faceVertices, size_t lineNb)
 {
-	std::vector<Vector3d>	vecEdges;
+	std::vector<Vector3f>	vecEdges;
 	size_t					nbVert = faceVertices.size();
 
 	if (nbVert < 3)
@@ -109,7 +109,7 @@ void	Obj::CreateTriangle(const std::vector<Vector3d>& faceVertices, size_t lineN
 		this->FanTriangulation(faceVertices);
 }
 
-void	Obj::FanTriangulation(const std::vector<Vector3d>& faceVertices)
+void	Obj::FanTriangulation(const std::vector<Vector3f>& faceVertices)
 {
 	// Use fan triangulation
 	for (size_t i = 1; i < faceVertices.size() - 1; ++i)
@@ -142,9 +142,9 @@ void	Obj::FanTriangulation(const std::vector<Vector3d>& faceVertices)
 //******* Utils *******
 //*********************
 
-bool	IsPolygonePlane(const std::vector<Vector3d>& vecEdges)
+bool	IsPolygonePlane(const std::vector<Vector3f>& vecEdges)
 {
-	Vector3d	normal = vecEdges[0].crossProduct(vecEdges[1]);
+	Vector3f	normal = vecEdges[0].crossProduct(vecEdges[1]);
 
 	for (size_t i = 2; i < vecEdges.size(); ++i)
 	{
@@ -155,9 +155,9 @@ bool	IsPolygonePlane(const std::vector<Vector3d>& vecEdges)
 	return true;
 }
 
-bool	IsPolygoneConvex(const std::vector<Vector3d>& vecEdges)
+bool	IsPolygoneConvex(const std::vector<Vector3f>& vecEdges)
 {
-	Vector3d	normal = vecEdges[0].crossProduct(vecEdges[1]);
+	Vector3f	normal = vecEdges[0].crossProduct(vecEdges[1]);
 
 	for (size_t i = 1; i < vecEdges.size(); ++i)
 	{
@@ -172,11 +172,23 @@ bool	IsPolygoneConvex(const std::vector<Vector3d>& vecEdges)
 
 void	Obj::ComputeCenter()
 {
-	Vector3d	vecCenter(0);
+	Vector3<GLfloat>	vecCenter(0);
 
 	for (const auto& vertex : this->vecVertex)
 		vecCenter = vecCenter + vertex;
-	this->centerPoint[0] = vecCenter[0] / (GLfloat)this->vecVertex.size();
-	this->centerPoint[1] = vecCenter[1] / (GLfloat)this->vecVertex.size();
-	this->centerPoint[2] = vecCenter[2] / (GLfloat)this->vecVertex.size();
+	vecCenter = vecCenter * (1 / (GLfloat)this->vecVertex.size());
+	this->centerPoint[0] = vecCenter[0];
+	this->centerPoint[1] = vecCenter[1];
+	this->centerPoint[2] = vecCenter[2];
+
+	this->maxDistCenter = 0;
+	this->meanDistCenter = 0;
+	for (const auto& vertex : this->vecVertex)
+	{
+		auto distCenter = (vertex - vecCenter).euclidNorm();
+		meanDistCenter += distCenter;
+		if (distCenter > maxDistCenter)
+			maxDistCenter = distCenter;
+	}
+	meanDistCenter /= (GLfloat)this->vecVertex.size();
 }

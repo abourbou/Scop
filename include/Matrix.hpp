@@ -23,6 +23,9 @@ using Vector3 = Vector<scal,3>;
 template <typename scal>
 using Matrix3 = Matrix<scal,3,3>;
 
+using Vector3f = Vector<float, 3>;
+using Matrix3f = Matrix<float, 3, 3>;
+
 using Vector3d = Vector<double, 3>;
 using Matrix3d = Matrix<double, 3, 3>;
 
