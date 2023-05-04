@@ -95,8 +95,8 @@ void	Obj::ParseNormal(std::stringstream& lineStream, size_t lineNb)
 
 void	Obj::ParseTextureCoord(std::stringstream& lineStream, size_t lineNb)
 {
-	std::string		token;
-	Vector<float,2>	UV;
+	std::string	token;
+	Vector2f	UV;
 	size_t		compt = 0;
 
 	while (getline(lineStream, token, ' '))
@@ -190,24 +190,25 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 {
 	std::string				token;
 	std::set<size_t>		setVertexId;
-	std::vector<FaceVertex>	faceVertices2;
+	std::vector<FaceVertex>	faceVertices;
 	Vector3f				normal;
 
 	while (getline(lineStream, token, ' '))
 	{
 		if (token.empty() || std::isspace(token.front()))
 			continue;
-		try {faceVertices2.emplace_back(ParseFaceVert(token, normal, setVertexId));}
+		try {faceVertices.emplace_back(ParseFaceVert(token, normal, setVertexId));}
 		catch (const std::exception& e)
 		{throw FileException(std::string("invalid face format : ") + e.what(), lineNb);}
 	}
 
-	if (faceVertices2.size() < 3)
+	if (faceVertices.size() < 3)
 		throw FileException("Unvalid face : not enough vertices", lineNb);
-	this->CreateTriangle(faceVertices2, normal, lineNb);
+
+	this->TriangulationWithCheck(faceVertices, normal, lineNb);
 }
 
-void	Obj::CreateTriangle(const std::vector<FaceVertex>& faceVertices, const Vector3f& normal, size_t lineNb)
+void	Obj::TriangulationWithCheck(const std::vector<FaceVertex>& faceVertices, const Vector3f& normal, size_t lineNb)
 {
 	std::vector<Vector3f>	vecEdges;
 	size_t					nbVert = faceVertices.size();
@@ -228,16 +229,7 @@ void	Obj::FanTriangulation(const std::vector<FaceVertex>& faceVertices, Vector3f
 	// Use fan triangulation
 	for (size_t i = 1; i < faceVertices.size() - 1; ++i)
 	{
-		// Create triangle
-		this->vecTriangle.push_back(faceVertices[0].vertice[0]);
-		this->vecTriangle.push_back(faceVertices[0].vertice[1]);
-		this->vecTriangle.push_back(faceVertices[0].vertice[2]);
-		this->vecTriangle.push_back(faceVertices[i].vertice[0]);
-		this->vecTriangle.push_back(faceVertices[i].vertice[1]);
-		this->vecTriangle.push_back(faceVertices[i].vertice[2]);
-		this->vecTriangle.push_back(faceVertices[i + 1].vertice[0]);
-		this->vecTriangle.push_back(faceVertices[i + 1].vertice[1]);
-		this->vecTriangle.push_back(faceVertices[i + 1].vertice[2]);
+		CreateTriangle(faceVertices[0], faceVertices[i], faceVertices[i + 1]);
 
 		// Create triangle normal for each vertex
 		if (normal[0] == 0.f && normal[1] == 0.f && normal[2] == 0.f)
@@ -255,6 +247,44 @@ void	Obj::FanTriangulation(const std::vector<FaceVertex>& faceVertices, Vector3f
 	}
 }
 
+void	Obj::CreateTriangle(const FaceVertex& v0, const FaceVertex& v1, const FaceVertex& v2)
+{
+	const Vector2f* pUV;
+	static Vector2f arrayUV[] = {Vector2f{{0.,0.}}, Vector2f{{1.,0.}}, Vector2f{{1.,1.}}};
+
+	// Create v0 vertex
+	this->vecTriangle.push_back(v0.vertice[0]);
+	this->vecTriangle.push_back(v0.vertice[1]);
+	this->vecTriangle.push_back(v0.vertice[2]);
+
+	// Create v0 uv
+	pUV = (v0.texCoord[0] == -1. || v0.texCoord[1] == -1.) ?
+		&arrayUV[0] : &v0.texCoord;
+	this->vecUV.push_back((*pUV)[0]);
+	this->vecUV.push_back((*pUV)[1]);
+
+	// Create v1 vertex
+	this->vecTriangle.push_back(v1.vertice[0]);
+	this->vecTriangle.push_back(v1.vertice[1]);
+	this->vecTriangle.push_back(v1.vertice[2]);
+
+	// Create v1 uv
+	pUV = (v1.texCoord[0] == -1. || v1.texCoord[1] == -1.) ?
+		&arrayUV[1] : &v1.texCoord;
+	this->vecUV.push_back((*pUV)[0]);
+	this->vecUV.push_back((*pUV)[1]);
+
+	// Create v2 vertex
+	this->vecTriangle.push_back(v2.vertice[0]);
+	this->vecTriangle.push_back(v2.vertice[1]);
+	this->vecTriangle.push_back(v2.vertice[2]);
+
+	// Create v2 uv
+	pUV = (v2.texCoord[0] == -1. || v2.texCoord[1] == -1.) ?
+		&arrayUV[2] : &v2.texCoord;
+	this->vecUV.push_back((*pUV)[0]);
+	this->vecUV.push_back((*pUV)[1]);
+}
 
 //*********************
 //******* Utils *******

@@ -60,8 +60,8 @@ class FileException : public std::exception {
 
 struct FaceVertex
 {
-	Vector3f			vertice;
-	Vector<float, 2>	texCoord{-1};
+	Vector3f	vertice;
+	Vector2f	texCoord{-1};
 };
 
 class Obj
@@ -97,8 +97,9 @@ class Obj
 	void	ParseFace(std::stringstream& lineStream, size_t compt);
 	FaceVertex	ParseFaceVert(const std::string& faceElem, Vector3f& normal,
 								std::set<size_t>& setVertexId);
-	void	CreateTriangle(const std::vector<FaceVertex>& vecObjVertex, const Vector3f& normal, size_t lineNb);
+	void	TriangulationWithCheck(const std::vector<FaceVertex>& vecObjVertex, const Vector3f& normal, size_t lineNb);
 	void	FanTriangulation(const std::vector<FaceVertex>& faceVertices, Vector3f normal);
+	void	CreateTriangle(const FaceVertex& v1, const FaceVertex& v2, const FaceVertex& v3);
 	void	ComputeCenter();
 };
 
