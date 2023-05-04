@@ -48,7 +48,7 @@ GLFWwindow*	init_openGL()
 	return window;
 }
 
-void	loopDraw(GLFWwindow* window, const Obj &obj)
+void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 {
 	// Create VOA for vertex
 	GLuint VertexArrayID;
@@ -96,8 +96,27 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj.vecUV.size(), obj.vecUV.data(), GL_STATIC_DRAW);
 
 	// Load texture
-	GLuint Texture = loadBMP_custom("./wavefront_obj/fire_camp.bmp");
-	// GLuint Texture = loadDDS("./wavefront_obj/");
+	GLuint Texture = 0;
+	if (!textureFile.empty())
+	{
+		if (textureFile.size() < 5)
+		{ PRINT_ERROR("Invalid texture, must be a .bmp or .dds extension"); }
+		else
+		{
+			std::string extension = textureFile.substr(textureFile.size() - 4);
+			if (extension == ".bmp")
+				Texture = LoadBMP(textureFile.c_str());
+			else if (extension == ".dds")
+				Texture = LoadDDS(textureFile.c_str());
+			else
+			{ PRINT_ERROR("Invalid texture, must be a.bmp or.dds extension"); }
+		}
+	}
+	if (Texture == 0)
+	{
+		PRINT_INFO("Use default texture");
+		Texture = LoadBMP("./wavefront_obj/fire_camp.bmp");
+	}
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 
 	// Start timer main loop
@@ -190,8 +209,8 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 	glfwTerminate();
 }
 
-void	rendering(Obj& obj)
+void	rendering(Obj& obj, std::string textureFile)
 {
 	GLFWwindow*	window = init_openGL();
-	loopDraw(window, obj);
+	loopDraw(window, obj, textureFile);
 }

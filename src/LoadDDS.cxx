@@ -6,7 +6,7 @@
 #define FOURCC_DXT3 0x33545844 // Equivalent to "DXT3" in ASCII
 #define FOURCC_DXT5 0x35545844 // Equivalent to "DXT5" in ASCII
 
-GLuint loadDDS(const char * imagepath){
+GLuint LoadDDS(const char * imagepath){
 
 	unsigned char header[124];
 
@@ -14,15 +14,18 @@ GLuint loadDDS(const char * imagepath){
 
 	/* try to open the file */
 	fp = fopen(imagepath, "rb");
-	if (fp == NULL){
-		printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar();
+	if (fp == NULL)
+	{
+		PRINT_ERROR(imagepath << " could not be opened" << std::endl);
 		return 0;
 	}
 
 	/* verify the type of file */
 	char filecode[4];
 	fread(filecode, 1, 4, fp);
-	if (strncmp(filecode, "DDS ", 4) != 0) {
+	if (strncmp(filecode, "DDS ", 4) != 0)
+	{
+		PRINT_ERROR(imagepath << " is not a valid DDS file" << std::endl);
 		fclose(fp);
 		return 0;
 	}
@@ -88,7 +91,6 @@ GLuint loadDDS(const char * imagepath){
 		// Deal with Non-Power-Of-Two textures. This code is not included in the webpage to reduce clutter.
 		if(width < 1) width = 1;
 		if(height < 1) height = 1;
-
 	}
 
 	free(buffer);

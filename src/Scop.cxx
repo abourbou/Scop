@@ -6,15 +6,18 @@
 
 int main(int argc, char **argv)
 {
-	if (argc != 2)
+	if (argc < 2 || argc > 3)
 	{
-		std::cerr << "Usage: ./Scop [OBJ]" << std::endl;
+		std::cerr << "Usage: ./Scop OBJ [Text]" << std::endl;
 		return 0;
 	}
     try
     {
         Obj obj(argv[1]);
-		rendering(obj);
+		if (argc == 3)
+			rendering(obj, argv[2]);
+		else
+			rendering(obj);
     }
     catch(const std::exception& e)
     {

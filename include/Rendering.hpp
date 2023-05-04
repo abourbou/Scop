@@ -15,9 +15,9 @@
 #include "Obj.hpp"
 #include "Transformations.hpp"
 
-void	rendering(Obj& obj);
+void	rendering(Obj& obj, std::string textureFile = "");
 
 GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path);
 
-GLuint loadBMP_custom(const char * imagepath);
-GLuint loadDDS(const char * imagepath);
+GLuint LoadBMP(const char * imagepath);
+GLuint LoadDDS(const char * imagepath);

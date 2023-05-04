@@ -1,15 +1,18 @@
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include "Rendering.hpp"
 
+GLuint error_file(FILE* file)
+{
+	PRINT_ERROR("Not a correct BMP file\n");
+	fclose(file);
+	return 0;
 
-GLuint loadBMP_custom(const char * imagepath){
+}
 
-	printf("Reading image %s\n", imagepath);
+GLuint LoadBMP(const char * imagepath){
+
+	PRINT_INFO("Reading image " << imagepath << std::endl);
 
 	// Data read from the header of the BMP file
 	unsigned char header[54];
@@ -21,28 +24,25 @@ GLuint loadBMP_custom(const char * imagepath){
 
 	// Open the file
 	FILE * file = fopen(imagepath,"rb");
-	if (!file){
-		printf("%s could not be opened. Are you in the right directory ? \n", imagepath);
-		exit(1);
+	if (!file)
+	{
+		PRINT_ERROR(imagepath << "could not be opened");
+		return 0;
 	}
 
 	// Read the header, i.e. the 54 first bytes
-
 	// If less than 54 bytes are read, problem
-	if ( fread(header, 1, 54, file)!=54 ){ 
-		printf("Not a correct BMP file\n");
-		fclose(file);
-		exit(1);
+	if ( fread(header, 1, 54, file) !=54 )
+	{
 	}
 	// A BMP files always begins with "BM"
-	if ( header[0]!='B' || header[1]!='M' ){
-		printf("Not a correct BMP file\n");
-		fclose(file);
-		exit(1);
-	}
+	if (header[0]!='B' || header[1]!='M')
+		return (error_file(file));
 	// Make sure this is a 24bpp file
-	if ( *(int*)&(header[0x1E])!=0  )         {printf("Not a correct BMP file\n");    fclose(file); return 0;}
-	if ( *(int*)&(header[0x1C])!=24 )         {printf("Not a correct BMP file\n");    fclose(file); return 0;}
+	if (*(int*)&(header[0x1E])!=0 )
+		return (error_file(file));
+	if (*(int*)&(header[0x1C])!=24)
+		return (error_file(file));
 
 	// Read the information about the image
 	dataPos    = *(int*)&(header[0x0A]);
@@ -66,7 +66,7 @@ GLuint loadBMP_custom(const char * imagepath){
 	// Create one OpenGL texture
 	GLuint textureID;
 	glGenTextures(1, &textureID);
-	
+
 	// "Bind" the newly created texture : all future texture functions will modify this texture
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
