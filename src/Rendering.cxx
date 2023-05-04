@@ -84,6 +84,23 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 						   obj.centerPoint,
 						   Vector3<GLfloat>{{0,1,0}});
 
+	// Create VOA for UV
+	GLuint UVarrayID;
+	glGenVertexArrays(1, &UVarrayID);
+	glBindVertexArray(UVarrayID);
+
+	// Bind list of UV
+	GLuint	UVbuffer;
+	glGenBuffers(1, &UVbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, UVbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj.vecUV.size(), obj.vecUV.data(), GL_STATIC_DRAW);
+
+	// Load texture
+	GLuint Texture = loadBMP_custom("./wavefront_obj/fire_camp.bmp");
+	// GLuint Texture = loadDDS("./wavefront_obj/");
+	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
+
+	// Start timer main loop
 	std::chrono::milliseconds start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
 						std::chrono::system_clock::now().time_since_epoch());
 
@@ -92,6 +109,12 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Use our shader
 		glUseProgram(programID);
+
+		// Bind our texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Texture);
+		// Set our "myTextureSampler" sampler to texture
+		glUniform1i(TextureID, 0);
 
 		// Make the object rotate around himself
 		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -113,7 +136,7 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 		glEnableVertexAttribArray(VertexArrayID - 1);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glVertexAttribPointer(
-			VertexArrayID - 1,  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			VertexArrayID - 1,  // attribute 0.
 			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
@@ -125,12 +148,24 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 		glEnableVertexAttribArray(NormalArrayID - 1);
 		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
 		glVertexAttribPointer(
-			NormalArrayID - 1,  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			NormalArrayID - 1,  // attribute 1
 			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
 			0,                  // stride
 			(void*)0            // array buffer offset
+		);
+
+		// 3rd attribute buffer : texture coordinates
+		glEnableVertexAttribArray(UVarrayID - 1);
+		glBindBuffer(GL_ARRAY_BUFFER, UVbuffer);
+		glVertexAttribPointer(
+            UVarrayID - 1,		// attribute 2
+            2,                  // size
+            GL_FLOAT,           // type
+            GL_FALSE,           // normalized?
+			0,
+			0
 		);
 
 		glDrawArrays(GL_TRIANGLES, 0, obj.vecTriangle.size() / 3);
@@ -148,6 +183,7 @@ void	loopDraw(GLFWwindow* window, const Obj &obj)
 	// Cleanup VBO
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteVertexArrays(1, &VertexArrayID);
+	glDeleteTextures(1, &Texture);
 	glDeleteProgram(programID);
 
 	// Close OpenGL window and terminate GLFW

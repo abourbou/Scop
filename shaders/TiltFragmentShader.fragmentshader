@@ -2,11 +2,17 @@
 
 in float fragmentColor;
 
+in vec2 UV;
+
 // Ouput data
 out vec3 color;
+
+// Sampler for texture
+uniform sampler2D myTextureSampler;
 
 void main()
 {
 	// Output color depends on tilt of the triangle
-	color = fragmentColor * vec3(1,1,1);
+	//color = fragmentColor * vec3(1,1,1);
+	color = texture(myTextureSampler, UV).rgb;
 }

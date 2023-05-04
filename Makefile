@@ -33,6 +33,8 @@ SRC			=	$(addprefix $(PATH_SRC)/, \
 				Obj.cxx 		\
 				Rendering.cxx	\
 				LoadShader.cxx	\
+				LoadBMP.cxx		\
+				LoadDDS.cxx		\
 				)
 
 OBJ			=	$(addprefix $(PATH_OBJ)/, $(SRC:.cxx=.o))
