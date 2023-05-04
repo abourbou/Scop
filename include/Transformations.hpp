@@ -6,10 +6,15 @@
 #include "Matrix.hpp"
 
 // Object transformation
+
 template<typename scal>
 Matrix<scal, 4, 4> Translation(scal x, scal y, scal z);
 template<typename scal>
-Matrix<scal, 4, 4>	Rotation(scal angle, const Matrix<scal,3,1>& rotAxis);
+Matrix<scal, 4, 4>	Rx(scal angle);
+template<typename scal>
+Matrix<scal, 4, 4>	Ry(scal angle);
+template<typename scal>
+Matrix<scal, 4, 4>	Rz(scal angle);
 
 // Camera transformation
 template<typename scal>
@@ -18,10 +23,11 @@ template<typename scal>
 Matrix<scal, 4, 4>	PerspectiveProj(scal fov, scal screenRatio, scal zNear, scal zFar);
 
 // Utils
-template<typename scal, size_t M, size_t N>
-Matrix<scal, M, N>	outerProduct(const Matrix<scal,M,1>& m, const Matrix<scal,N,1>& n);
-template<typename scal>
-Matrix<scal, 3, 3>	SkewSymmetricCrossProduct(const Matrix<scal,3,1>& vec);
+template<typename scal, size_t N>
+Matrix<scal, 4, N>	CartToHomog(const Matrix<scal, 3, N>& mat);
+
+template<typename scal, size_t N>
+Matrix<scal, 3, N>	HomogToCart(const Matrix<scal, 4, N>& mat);
 
 // ************************************************
 // **************** Object Transformation *********
@@ -133,38 +139,30 @@ Matrix<scal, 4, 4>	PerspectiveProj(scal fov, scal screenRatio, scal zNear, scal 
 }
 
 // ************************************************
-// ********************** Utilities ***************
+// *********************** Utils ******************
 // ************************************************
-template<typename scal, size_t M, size_t N>
-Matrix<scal, M, N>	outerProduct(const Matrix<scal,M,1>& m, const Matrix<scal,N,1>& n)
+template<typename scal, size_t N>
+Matrix<scal, 4, N>	CartToHomog(const Matrix<scal, 3, N>& mat)
 {
-	Matrix<scal,M,N> result;
+	Matrix<scal, 4, N> result;
 
-	for (size_t i = 0; i < M; ++i)
-		for (size_t j = 0; j < N; ++j)
-			result(i,j) = m[i] * n[j];
+	for (size_t i = 0; i < 3; i++)
+		for (size_t j = 0; j < N; j++)
+			result(i,j) = mat(i,j);
+	result(3, N - 1) = 1;
 
 	return result;
 }
 
-// https://en.wikipedia.org/wiki/Skew-symmetric_matrix#Cross_product
-// | 0  -uz  uy|
-// | uz  0  -ux|
-// |-uy  ux  0 |
-template<typename scal>
-Matrix<scal, 3, 3>	SkewSymmetricCrossProduct(const Matrix<scal,3,1>& vec)
+template<typename scal, size_t N>
+Matrix<scal, 3, N>	HomogToCart(const Matrix<scal, 4, N>& mat)
 {
-	Matrix<scal, 3, 3>	result;
+	Matrix<scal, 3, N> result;
+	scal w_1 = 1. / mat(3, N - 1);
 
-	result(1,0) = vec[2];
-	result(2,0) = -1 * vec[1];
-	result(0,1) = -1 * vec[2];
-	result(2,1) = vec[0];
-	result(0,2) = vec[1];
-	result(0,2) = -1 * vec[0];
+	for (size_t i = 0; i < 3; i++)
+		for (size_t j = 0; j < N; j++)
+			result(i,j) = mat(i,j) * w_1;
 
 	return result;
 }
-
-
-

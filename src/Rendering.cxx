@@ -80,8 +80,12 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 	auto Projection = PerspectiveProj(45.f, 4.f/3.f, 0.1f, 100.f);
 
 	auto viewDist = (obj.maxDistCenter + obj.meanDistCenter) / 2.f;
-	auto View = ViewMatrix(Vector3<GLfloat>{{viewDist * 4.f,0,0}},
-						   obj.centerPoint,
+
+	Vector3f camPos = {{viewDist * 4.0f,0,0}};
+	Vector3f centerView = {obj.centerPoint};
+
+	auto View = ViewMatrix(camPos,
+						   centerView,
 						   Vector3<GLfloat>{{0,1,0}});
 
 	// Create VOA for UV
