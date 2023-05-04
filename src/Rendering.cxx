@@ -48,6 +48,39 @@ GLFWwindow*	init_openGL()
 	return window;
 }
 
+// TODO buttons for movements (and rotations ?)
+// TODO bind key to texture mapping
+// TODO smooth transitions between colors
+// TODO better way to apply texture
+// TODO only draw lines for the object
+
+GLint	LoadTexture(std::string textureFile, std::string defaultTexture)
+{
+	GLuint Texture = 0;
+
+	if (!textureFile.empty())
+	{
+		if (textureFile.size() < 5)
+		{ PRINT_ERROR("Invalid texture, must be a .bmp or .dds extension"); }
+		else
+		{
+			std::string extension = textureFile.substr(textureFile.size() - 4);
+			if (extension == ".bmp")
+				Texture = LoadBMP(textureFile.c_str());
+			else if (extension == ".dds")
+				Texture = LoadDDS(textureFile.c_str());
+			else
+			{ PRINT_ERROR("Invalid texture, must be a.bmp or.dds extension"); }
+		}
+	}
+	if (Texture == 0)
+	{
+		PRINT_INFO("Use default texture");
+		Texture = LoadBMP(defaultTexture.c_str());
+	}
+	return Texture;
+}
+
 void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 {
 	// Create VOA for vertex
@@ -100,27 +133,7 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj.vecUV.size(), obj.vecUV.data(), GL_STATIC_DRAW);
 
 	// Load texture
-	GLuint Texture = 0;
-	if (!textureFile.empty())
-	{
-		if (textureFile.size() < 5)
-		{ PRINT_ERROR("Invalid texture, must be a .bmp or .dds extension"); }
-		else
-		{
-			std::string extension = textureFile.substr(textureFile.size() - 4);
-			if (extension == ".bmp")
-				Texture = LoadBMP(textureFile.c_str());
-			else if (extension == ".dds")
-				Texture = LoadDDS(textureFile.c_str());
-			else
-			{ PRINT_ERROR("Invalid texture, must be a.bmp or.dds extension"); }
-		}
-	}
-	if (Texture == 0)
-	{
-		PRINT_INFO("Use default texture");
-		Texture = LoadBMP("./wavefront_obj/fire_camp.bmp");
-	}
+	GLuint Texture = LoadTexture(textureFile, "./wavefront_obj/fire_camp.bmp");
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 
 	// Start timer main loop
