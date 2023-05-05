@@ -49,8 +49,6 @@ GLFWwindow*	init_openGL()
 }
 
 // TODO buttons/mouse for rotations ?
-// TODO bind key to texture mapping
-// TODO smooth transitions between colors
 // TODO better way to apply texture
 // TODO only draw lines for the object
 
@@ -171,6 +169,44 @@ Matrix<float,4,4> HandleView(GLFWwindow* window, Vector3f& camPos, Vector3f& cen
 	return View;
 }
 
+float	HandleChangeColor(GLFWwindow* window)
+{
+	(void)window;
+	static float direction = 1.f;
+	static auto startTime = GetTimeMs();
+	static float degree = 0;
+	const float ratio = 0.5f;
+
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+	{
+		if (degree == 0 || degree == 1)
+			startTime = GetTimeMs();
+		if (degree == 0)
+			degree = 0.000001;
+		else if (degree == 1)
+			degree = 0.999999;
+	}
+
+	if (degree > 0. && degree < 1.)
+	{
+		auto currentTime = GetTimeMs();
+        auto deltaTime = currentTime.count() - startTime.count();
+		degree += deltaTime / 1000.0f * ratio * direction;
+		if (degree > 1.)
+		{
+			direction *= -1.;
+			degree = 1.;
+		}
+		else if (degree < 0.)
+		{
+			direction *= -1.;
+			degree = 0.;
+		}
+	}
+
+	return degree;
+}
+
 void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 {
 	// Create VOA for vertex
@@ -216,8 +252,11 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 	glBindBuffer(GL_ARRAY_BUFFER, UVbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * obj.vecUV.size(), obj.vecUV.data(), GL_STATIC_DRAW);
 
+	// Create var for gradTexture
+	GLuint gradientColorID = glGetUniformLocation(programID, "gradTexture");
+
 	// Load texture
-	GLuint Texture = LoadTexture(textureFile, "./wavefront_obj/fire_camp.bmp");
+	GLuint TextureNb = LoadTexture(textureFile, "./wavefront_obj/fire_camp.bmp");
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 
 	do{
@@ -228,9 +267,15 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 
 		// Bind our texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Texture);
+		glBindTexture(GL_TEXTURE_2D, TextureNb);
 		// Set our "myTextureSampler" sampler to texture
-		glUniform1i(TextureID, 0);
+		glUniform1i(TextureID, TextureNb - 1);
+
+		// Handle texture key
+		//auto gradTexture = HandleChangeColor(window);
+		// float gradTexture = 0.5;
+		float gradTexture = HandleChangeColor(window);
+		glUniform1f(gradientColorID, gradTexture);
 
 		// Create MVP matrix
 		auto Model = GetModel(obj.centerPoint);
@@ -273,7 +318,7 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 	// Cleanup VBO
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteVertexArrays(1, &VertexArrayID);
-	glDeleteTextures(1, &Texture);
+	glDeleteTextures(1, &TextureNb);
 	glDeleteProgram(programID);
 
 	// Close OpenGL window and terminate GLFW

@@ -10,9 +10,15 @@ out vec3 color;
 // Sampler for texture
 uniform sampler2D myTextureSampler;
 
+// Gradient color
+uniform float gradTexture;
+
 void main()
 {
-	// Output color depends on tilt of the triangle
-	color = fragmentColor * vec3(1,1,1);
-	//color = texture(myTextureSampler, UV).rgb;
+	// Color from the tilt of the triangle
+	vec3 tiltColor = fragmentColor * vec3(1,1,1);
+	// Color from the texture
+	vec3 textureColor = texture(myTextureSampler, UV).rgb;
+
+	color = (1.f - gradTexture) * tiltColor + gradTexture * textureColor;
 }
