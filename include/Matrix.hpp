@@ -70,6 +70,8 @@ class Matrix : public std::array<std::array<scal, N>, M>
 		scal&	operator[](size_t i);
 		scal	operator()(size_t i, size_t j) const;
 		scal&	operator()(size_t i, size_t j);
+
+		// Simple arithmetic operators
 		matrixType&	operator=(const matrixType& rhs);
 		matrixType&	operator+=(const matrixType& rhs);
 		matrixType&	operator-=(const matrixType& rhs);
