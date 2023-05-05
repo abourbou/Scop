@@ -54,6 +54,8 @@ GLFWwindow*	init_openGL()
 // TODO better way to apply texture
 // TODO only draw lines for the object
 
+
+
 GLint	LoadTexture(std::string textureFile, std::string defaultTexture)
 {
 	GLuint Texture = 0;
@@ -140,6 +142,8 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 	std::chrono::milliseconds start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
 						std::chrono::system_clock::now().time_since_epoch());
 
+	std::chrono::milliseconds last_time = start_time;
+
 	do{
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -152,15 +156,78 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 		// Set our "myTextureSampler" sampler to texture
 		glUniform1i(TextureID, 0);
 
-		// Make the object rotate around himself
-		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+		// Movements
+		std::chrono::milliseconds current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
 							std::chrono::system_clock::now().time_since_epoch());
+		// Make the object rotate around himself
 		GLfloat rotPerMs = 0.036;
-		GLfloat angle = -10. + ((ms.count() - start_time.count()) % 10000) * rotPerMs;
+		GLfloat angle = -10. + ((current_time.count() - start_time.count()) % 10000) * rotPerMs;
 
 		auto Model = Translation(obj.centerPoint[0], obj.centerPoint[1], obj.centerPoint[2])
-				     * Ry(angle)
-				     * Translation(-obj.centerPoint[0], -obj.centerPoint[1], -obj.centerPoint[2]);
+					 * Ry(angle)
+					 * Translation(-obj.centerPoint[0], -obj.centerPoint[1], -obj.centerPoint[2]);
+
+		// Translation
+		GLfloat translSpeed = 0.005 * viewDist;
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+			translSpeed *= 2;
+		auto deltaTime = current_time - last_time;
+
+		static Vector3f headUp = {{0., 1., 0.}};
+		auto direction = (centerView - camPos).normalize();
+		auto right = direction.crossProduct(headUp);
+		auto up = right.crossProduct(direction);
+
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS ||
+			glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			camPos		+= translSpeed * up * (float)deltaTime.count();
+			centerView	+= translSpeed * up * (float)deltaTime.count();
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS ||
+			glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			camPos		-= translSpeed * up * (float)deltaTime.count();
+			centerView	-= translSpeed * up * (float)deltaTime.count();
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS ||
+			glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			camPos		-= translSpeed * right * (float)deltaTime.count();
+			centerView	-= translSpeed * right * (float)deltaTime.count();
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS ||
+			glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			camPos		+= translSpeed * right * (float)deltaTime.count();
+			centerView	+= translSpeed * right * (float)deltaTime.count();
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		{
+			camPos		-= translSpeed * direction * (float)deltaTime.count();
+			centerView	-= translSpeed * direction * (float)deltaTime.count();
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		{
+			camPos		+= translSpeed * direction * (float)deltaTime.count();
+			centerView	+= translSpeed * direction * (float)deltaTime.count();
+		}
+
+		// auto delta_sec = (current_time.count() - start_time.count()) / 1000;
+		// static auto count = delta_sec;
+		// if (delta_sec > count)
+		// {
+		// 	std::cout << "camPos : " << transpose(camPos) << std::endl;
+		// 	std::cout << "centerView : " << transpose(centerView) << std::endl;
+		// 	std::cout << "center object : " << transpose(obj.centerPoint) << std::endl;
+		// 	++count;
+		// }
+		View = ViewMatrix(camPos,
+						  centerView,
+						  Vector3<GLfloat>{{0,1,0}});
+
 
 		auto MVP = Projection * View * Model;
 
@@ -196,10 +263,10 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 		glEnableVertexAttribArray(UVarrayID - 1);
 		glBindBuffer(GL_ARRAY_BUFFER, UVbuffer);
 		glVertexAttribPointer(
-            UVarrayID - 1,		// attribute 2
-            2,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
+			UVarrayID - 1,		// attribute 2
+			2,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
 			0,
 			0
 		);
@@ -211,6 +278,9 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		// Reset time
+		last_time = current_time;
 
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
