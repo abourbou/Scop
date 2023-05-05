@@ -100,70 +100,54 @@ Matrix<float, 4, 4>	GetModel(const Vector3f& centerObj)
 	return Model;
 }
 
-Matrix<float,4,4> HandleView(GLFWwindow* window, Vector3f& camPos, Vector3f& centerView, float magnitude)
+Matrix<float,4,4> HandleView(GLFWwindow* window, Vector3f& camPos, Vector3f& centerView,
+							 float magnitude)
 {
 	static const auto	startCamPos = camPos;
-	static const auto	startCenterView = centerView;
+	static const auto	startDirection =  (centerView - camPos).normalize();
+	static const auto	normDirection = (centerView -camPos).euclidNorm();
 
 	static const auto	startTime = GetTimeMs();
 	auto				currentTime = GetTimeMs();
 	static auto			lastTime = currentTime;
 
-	// Translation
-	GLfloat translSpeed = 0.005 * magnitude;
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		translSpeed *= 2;
 	auto deltaTime = currentTime - lastTime;
 
-	static Vector3f headUp = {{0., 1., 0.}};
+	// Orientation
 	auto direction = (centerView - camPos).normalize();
+	static Vector3f headUp = {{0., 1., 0.}};
 	auto right = direction.crossProduct(headUp);
 	auto up = right.crossProduct(direction);
 
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS ||
-		glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		camPos		+= translSpeed * up * (float)deltaTime.count();
-		centerView	+= translSpeed * up * (float)deltaTime.count();
-	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS ||
-		glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		camPos		-= translSpeed * up * (float)deltaTime.count();
-		centerView	-= translSpeed * up * (float)deltaTime.count();
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS ||
-		glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		camPos		-= translSpeed * right * (float)deltaTime.count();
-		centerView	-= translSpeed * right * (float)deltaTime.count();
-	}
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS ||
-		glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		camPos		+= translSpeed * right * (float)deltaTime.count();
-		centerView	+= translSpeed * right * (float)deltaTime.count();
-	}
+	// Translation parameter
+	GLfloat translSpeed = 0.005 * magnitude;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		translSpeed *= 2;
 
+	// Up / Down
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camPos	+= translSpeed * up * (float)deltaTime.count();
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camPos	-= translSpeed * up * (float)deltaTime.count();
+	// Left / Right
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camPos	-= translSpeed * right * (float)deltaTime.count();
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camPos	+= translSpeed * right * (float)deltaTime.count();
+	// Forward / Backward
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-	{
-		camPos		-= translSpeed * direction * (float)deltaTime.count();
-		centerView	-= translSpeed * direction * (float)deltaTime.count();
-	}
+		camPos	-= translSpeed * direction * (float)deltaTime.count();
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-	{
-		camPos		+= translSpeed * direction * (float)deltaTime.count();
-		centerView	+= translSpeed * direction * (float)deltaTime.count();
-	}
+		camPos	+= translSpeed * direction * (float)deltaTime.count();
+	// Reset pos
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
 		camPos = startCamPos;
-		centerView = startCenterView;
+		direction = startDirection;
 	}
 
-	auto View = ViewMatrix(camPos,
-						   centerView,
-						   Vector3<GLfloat>{{0,1,0}});
+	centerView = camPos + direction * normDirection;
+	auto View = ViewMatrix(camPos, centerView, Vector3f{{0.,1.,0.}});
 
 	lastTime = currentTime;
 	return View;
@@ -238,7 +222,8 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 	const auto Projection = PerspectiveProj(45.f, 4.f/3.f, 0.1f, 100.f);
 	const auto magnitude = (obj.maxDistCenter + obj.meanDistCenter) / 2.f;
-	Vector3f camPos = {{magnitude * 4.0f,0,0}};
+	Vector3f camPos = obj.centerPoint;
+	camPos[0] -= magnitude * 4.0;
 	Vector3f centerView = {obj.centerPoint};
 
 	// Create VOA for UV
