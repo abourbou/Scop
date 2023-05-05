@@ -49,8 +49,10 @@ GLFWwindow*	init_openGL()
 }
 
 // TODO buttons/mouse for rotations ?
+// ? => Check direction with the 3 axes, reset it also when space is pressed
+// ? Default for mouse to false
 // TODO better way to apply texture
-// TODO only draw lines for the object
+// ? => Read again tuto texture and try to find better way
 
 GLint	LoadTexture(std::string textureFile, std::string defaultTexture)
 {
@@ -191,6 +193,26 @@ float	HandleChangeColor(GLFWwindow* window)
 	return degree;
 }
 
+// Handle line mode with the button L at press moment
+void	HandleLineMode(GLFWwindow* window, GLuint lineModeID)
+{
+	static GLint lineMode = false;
+	static GLint lineModeButtonState = GLFW_PRESS;
+
+	if (glfwGetKey(window, GLFW_KEY_L) == lineModeButtonState)
+	{
+		if (lineModeButtonState == GLFW_PRESS)
+			lineMode = !lineMode;
+		lineModeButtonState = !lineModeButtonState;
+	}
+	glUniform1i(lineModeID, lineMode);
+	if (lineMode)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	else
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+}
+
 void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 {
 	// Create VOA for vertex
@@ -244,6 +266,9 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 	GLuint TextureNb = LoadTexture(textureFile, "./wavefront_obj/fire_camp.bmp");
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 
+	// Line Only Mode
+	GLuint lineModeID = glGetUniformLocation(programID, "lineMode");
+
 	do{
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -256,9 +281,10 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 		// Set our "myTextureSampler" sampler to texture
 		glUniform1i(TextureID, TextureNb - 1);
 
+		// Handle line mode
+		HandleLineMode(window, lineModeID);
+
 		// Handle texture key
-		//auto gradTexture = HandleChangeColor(window);
-		// float gradTexture = 0.5;
 		float gradTexture = HandleChangeColor(window);
 		glUniform1f(gradientColorID, gradTexture);
 
@@ -286,7 +312,7 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 		glBindBuffer(GL_ARRAY_BUFFER, UVbuffer);
 		glVertexAttribPointer(UVarrayID - 1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-        // Draw the object
+		// Draw the object
 		glDrawArrays(GL_TRIANGLES, 0, obj.vecTriangle.size() / 3);
 
 		glDisableVertexAttribArray(VertexArrayID - 1);

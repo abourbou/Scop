@@ -13,6 +13,9 @@ uniform sampler2D myTextureSampler;
 // Gradient color
 uniform float gradTexture;
 
+// Mode to only draw line
+uniform bool lineMode;
+
 void main()
 {
 	// Color from the tilt of the triangle
@@ -20,5 +23,8 @@ void main()
 	// Color from the texture
 	vec3 textureColor = texture(myTextureSampler, UV).rgb;
 
-	color = (1.f - gradTexture) * tiltColor + gradTexture * textureColor;
+	if (!lineMode)
+		color = (1.f - gradTexture) * tiltColor + gradTexture * textureColor;
+	else
+		color = vec3(1.f,1.f,1.f);
 }

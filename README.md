@@ -26,8 +26,9 @@ E &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : move frontward	\
 Q &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; : move backward	\
 Space &nbsp; &nbsp;&nbsp; : reset position
 
-## Color
-T		: change color from shade of white to texture
+## Modes
+T		: change mode from shade to texture and vice versa
+L		: change mode to wireframe, press again to cancel it
 
 ## Exit
 Escape : exit program
