@@ -9,29 +9,30 @@
 GLuint LoadDDS(const char * imagepath){
 
 	unsigned char header[124];
+	FILE *fd;
 
-	FILE *fp;
+	PRINT_INFO("Reading image " << imagepath << std::endl);
 
-	/* try to open the file */
-	fp = fopen(imagepath, "rb");
-	if (fp == NULL)
+	// Try to open the file
+	fd = fopen(imagepath, "rb");
+	if (fd == NULL)
 	{
 		PRINT_ERROR(imagepath << " could not be opened" << std::endl);
 		return 0;
 	}
 
-	/* verify the type of file */
+	// Verify the type of file
 	char filecode[4];
-	fread(filecode, 1, 4, fp);
+	fread(filecode, 1, 4, fd);
 	if (strncmp(filecode, "DDS ", 4) != 0)
 	{
 		PRINT_ERROR(imagepath << " is not a valid DDS file" << std::endl);
-		fclose(fp);
+		fclose(fd);
 		return 0;
 	}
 
-	/* get the surface desc */
-	fread(&header, 124, 1, fp);
+	// Get the surface desc
+	fread(&header, 124, 1, fd);
 
 	unsigned int height      = *(unsigned int*)&(header[8 ]);
 	unsigned int width	     = *(unsigned int*)&(header[12]);
@@ -39,29 +40,24 @@ GLuint LoadDDS(const char * imagepath){
 	unsigned int mipMapCount = *(unsigned int*)&(header[24]);
 	unsigned int fourCC      = *(unsigned int*)&(header[80]);
 
-
 	unsigned char * buffer;
 	unsigned int bufsize;
-	/* how big is it going to be including all mipmaps? */
+
 	bufsize = mipMapCount > 1 ? linearSize * 2 : linearSize;
 	buffer = (unsigned char*)malloc(bufsize * sizeof(unsigned char));
-	fread(buffer, 1, bufsize, fp);
-	/* close the file pointer */
-	fclose(fp);
+	fread(buffer, 1, bufsize, fd);
+	fclose(fd);
 
 	unsigned int format;
-	switch(fourCC)
-	{
-	case FOURCC_DXT1:
+	if (fourCC == FOURCC_DXT1)
 		format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-		break;
-	case FOURCC_DXT3:
+	else if (fourCC == FOURCC_DXT3)
 		format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-		break;
-	case FOURCC_DXT5:
+	else if (fourCC == FOURCC_DXT5)
 		format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-		break;
-	default:
+	else
+	{
+		PRINT_ERROR(imagepath << "has an invalid fourCC code");
 		free(buffer);
 		return 0;
 	}
@@ -70,7 +66,7 @@ GLuint LoadDDS(const char * imagepath){
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
-	// "Bind" the newly created texture : all future texture functions will modify this texture
+	// Bind the newly created texture
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 
@@ -89,10 +85,9 @@ GLuint LoadDDS(const char * imagepath){
 	unsigned int blockSize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
 	unsigned int offset = 0;
 
-	/* load the mipmaps */
 	for (unsigned int level = 0; level < mipMapCount && (width || height); ++level)
 	{
-		unsigned int size = ((width+3)/4)*((height+3)/4)*blockSize;
+		unsigned int size = ((width + 3) / 4) * ((height + 3) / 4) * blockSize;
 		glCompressedTexImage2D(GL_TEXTURE_2D, level, format, width, height,
 			0, size, buffer + offset);
 
@@ -100,7 +95,7 @@ GLuint LoadDDS(const char * imagepath){
 		width  /= 2;
 		height /= 2;
 
-		// Deal with Non-Power-Of-Two textures. This code is not included in the webpage to reduce clutter.
+		// Deal with Non-Power-Of-Two textures
 		if(width < 1) width = 1;
 		if(height < 1) height = 1;
 	}

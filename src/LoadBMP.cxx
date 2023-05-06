@@ -32,16 +32,17 @@ GLuint LoadBMP(const char * imagepath){
 
 	// Read the header, i.e. the 54 first bytes
 	// If less than 54 bytes are read, problem
-	if ( fread(header, 1, 54, file) !=54 )
+	if (fread(header, 1, 54, file) != 54)
 	{
+		PRINT_ERROR("Not a correct BMP file");
+		fclose(file);
+		return 0;
 	}
 	// A BMP files always begins with "BM"
-	if (header[0]!='B' || header[1]!='M')
+	if (header[0] != 'B' || header[1] != 'M')
 		return (error_file(file));
 	// Make sure this is a 24bpp file
-	if (*(int*)&(header[0x1E])!=0 )
-		return (error_file(file));
-	if (*(int*)&(header[0x1C])!=24)
+	if (*(int*)&(header[0x1E]) != 0 || *(int*)&(header[0x1C]) != 24)
 		return (error_file(file));
 
 	// Read the information about the image
@@ -51,10 +52,12 @@ GLuint LoadBMP(const char * imagepath){
 	height     = *(int*)&(header[0x16]);
 
 	// Some BMP files are misformatted, guess missing information
-	if (imageSize==0)    imageSize=width*height*3; // 3 : one byte for each Red, Green and Blue component
-	if (dataPos==0)      dataPos=54; // The BMP header is done that way
+	if (imageSize == 0)
+		imageSize = width * height * 3; // 3 components for RGB
+	if (dataPos == 0)
+		dataPos = 54; // The BMP header is done that way
 
-	// Create a buffer
+	// Create a buffer for data
 	data = new unsigned char [imageSize];
 
 	// Read the actual data from the file into the buffer
@@ -90,6 +93,5 @@ GLuint LoadBMP(const char * imagepath){
 	// Generate minimaps automatically
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	// Return the ID of the texture we just created
 	return textureID;
 }

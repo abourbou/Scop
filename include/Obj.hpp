@@ -20,11 +20,6 @@
 //* vt maybe later
 //* vn vertex normal
 //* f face
-//! mtlib
-//! usemtfl
-//! s
-//TODO o maybe later
-//TODO g maybe later
 
 #define DEFAULT_COLOR "\033[0m"
 #define RED     "\033[31m"
