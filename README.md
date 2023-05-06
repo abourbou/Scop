@@ -18,17 +18,21 @@ ex :
 
 # Commands :
 ## Movements
-Up/W &nbsp; &nbsp;&nbsp; : Move up	\
+Up/W &emsp; : Move up	\
 Down/S&nbsp; : move down	\
 Right/D &nbsp;: move right	\
-Left/A  &nbsp; &nbsp; : move left	\
-E &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : move frontward	\
-Q &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; : move backward	\
-Space &nbsp; &nbsp;&nbsp; : reset position
+Left/A&emsp; : move left	\
+E &emsp;&emsp;&emsp; : move frontward	\
+Q &emsp; &emsp; &nbsp; : move backward	\
+
+## Camera orientation
+M &emsp; &emsp;: Activate/Desactivate the camera control \
+Mouse : Control the camera
 
 ## Modes
-T		: change mode from shade to texture and vice versa
-L		: change mode to wireframe, press again to cancel it
+T &emsp;&emsp; : change mode from shade to texture and vice versa \
+L &emsp;&emsp; : change mode to wireframe, press again to cancel it \
+Space  : reset position and orientation
 
 ## Exit
 Escape : exit program

@@ -48,9 +48,6 @@ GLFWwindow*	init_openGL()
 	return window;
 }
 
-// TODO buttons/mouse for rotations ?
-// ? => Check direction with the 3 axes, reset it also when space is pressed
-// ? Default for mouse to false
 // TODO better way to apply texture
 // ? => Read again tuto texture and try to find better way
 
@@ -102,6 +99,50 @@ Matrix<float, 4, 4>	GetModel(const Vector3f& centerObj)
 	return Model;
 }
 
+void	HandleMouse(GLFWwindow* window, Vector3f& direction, Vector3f& up, Vector3f& right,
+					float& horizontalAngle, float& verticalAngle)
+{
+	static auto mouseButtonState = GLFW_PRESS;
+	static bool isMouseActive = false;
+	static bool firstTimeMouse = false;
+	static const float mouseSpeed = 0.001;
+
+	// Handle key to activate mouse
+	if (glfwGetKey(window, GLFW_KEY_M) == mouseButtonState)
+	{
+		if (mouseButtonState == GLFW_PRESS)
+		{
+			isMouseActive = !isMouseActive;
+			if (isMouseActive == true)
+				firstTimeMouse = true;
+		}
+		mouseButtonState =!mouseButtonState;
+	}
+	// Only put the cursor to the center the first time
+	if (firstTimeMouse)
+	{
+		glfwSetCursorPos(window, 1024/2, 768/2);
+		firstTimeMouse = false;
+	}
+	else if (isMouseActive)
+	{
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		glfwSetCursorPos(window, 1024/2, 768/2);
+		horizontalAngle += mouseSpeed * (1024. / 2. - xpos);
+		verticalAngle   += mouseSpeed * (768. / 2. - ypos);
+		direction = Vector3f{{
+			cosf(verticalAngle) * sinf(horizontalAngle),
+			sinf(verticalAngle),
+			cosf(verticalAngle) * cosf(horizontalAngle)}};
+		right = Vector3f{{
+			sinf(horizontalAngle - M_PI_2),
+			0,
+			cosf(horizontalAngle - M_PI_2)}};
+		up = right.crossProduct(direction);
+	}
+}
+
 Matrix<float,4,4> HandleView(GLFWwindow* window, Vector3f& camPos, Vector3f& centerView,
 							 float magnitude)
 {
@@ -112,7 +153,6 @@ Matrix<float,4,4> HandleView(GLFWwindow* window, Vector3f& camPos, Vector3f& cen
 	static const auto	startTime = GetTimeMs();
 	auto				currentTime = GetTimeMs();
 	static auto			lastTime = currentTime;
-
 	auto deltaTime = currentTime - lastTime;
 
 	// Orientation
@@ -120,6 +160,11 @@ Matrix<float,4,4> HandleView(GLFWwindow* window, Vector3f& camPos, Vector3f& cen
 	static Vector3f headUp = {{0., 1., 0.}};
 	auto right = direction.crossProduct(headUp);
 	auto up = right.crossProduct(direction);
+
+	// Mouse Movement
+	static float verticalAngle = 0;
+	static float horizontalAngle = M_PI_2;
+	HandleMouse(window, direction, up, right, horizontalAngle, verticalAngle);
 
 	// Translation parameter
 	GLfloat translSpeed = 0.005 * magnitude;
@@ -146,6 +191,8 @@ Matrix<float,4,4> HandleView(GLFWwindow* window, Vector3f& camPos, Vector3f& cen
 	{
 		camPos = startCamPos;
 		direction = startDirection;
+		horizontalAngle = M_PI_2;
+		verticalAngle = 0;
 	}
 
 	centerView = camPos + direction * normDirection;
