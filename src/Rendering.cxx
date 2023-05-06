@@ -310,7 +310,7 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 	GLuint gradientColorID = glGetUniformLocation(programID, "gradTexture");
 
 	// Load texture
-	GLuint TextureNb = LoadTexture(textureFile, "./wavefront_obj/fire_camp.bmp");
+	GLuint TextureNb = LoadTexture(textureFile, "./texture/broken_ice.bmp");
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 
 	// Line Only Mode

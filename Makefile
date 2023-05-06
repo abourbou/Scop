@@ -67,7 +67,7 @@ fclean	:	clean
 re		:	fclean all
 
 run : all
-	 ./$(NAME) test.obj
+	 ./$(NAME) wavefront_obj/42.obj
 
 help	:
 	@ printf "$(RESET)Welcom to Scop a project of graphic computing. \n$(RESET)"

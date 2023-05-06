@@ -4,7 +4,7 @@
 Obj render based on openGL and GLFW.
 Texture can be applied on the format bmp and dds.
 
-Some obj and textures are in the wavefront folder for example.
+Some obj are in the wavefront folder and some texture are in the texture folder.
 
 Compile the program with the command "Make"
 
@@ -13,7 +13,7 @@ The program usage is : ./Scop OBJ [TEXTURE]
 ex :
 ```
 ./Scop wavefront/42.obj
-./Scop wavefront/cube.obj wavefront/fire_camp.bmp
+./Scop wavefront/cube.obj texture/fire_camp.bmp
 ```
 
 # Commands :
