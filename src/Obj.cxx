@@ -208,7 +208,7 @@ void	Obj::ParseFace(std::stringstream& lineStream, size_t lineNb)
 	this->TriangulationWithCheck(faceVertices, normal, lineNb);
 }
 
-void	Obj::TriangulationWithCheck(const std::vector<FaceVertex>& faceVertices, const Vector3f& normal, size_t lineNb)
+void	Obj::TriangulationWithCheck(std::vector<FaceVertex>& faceVertices, const Vector3f& normal, size_t lineNb)
 {
 	std::vector<Vector3f>	vecEdges;
 	size_t					nbVert = faceVertices.size();
@@ -224,8 +224,10 @@ void	Obj::TriangulationWithCheck(const std::vector<FaceVertex>& faceVertices, co
 		this->FanTriangulation(faceVertices, normal);
 }
 
-void	Obj::FanTriangulation(const std::vector<FaceVertex>& faceVertices, Vector3f normal)
+void	Obj::FanTriangulation(std::vector<FaceVertex>& faceVertices, Vector3f normal)
 {
+	// Create UV if not given
+	CreateMissingUV(faceVertices);
 	// Use fan triangulation
 	for (size_t i = 1; i < faceVertices.size() - 1; ++i)
 	{
@@ -249,19 +251,14 @@ void	Obj::FanTriangulation(const std::vector<FaceVertex>& faceVertices, Vector3f
 
 void	Obj::CreateTriangle(const FaceVertex& v0, const FaceVertex& v1, const FaceVertex& v2)
 {
-	const Vector2f* pUV;
-	static Vector2f arrayUV[] = {Vector2f{{0.,0.}}, Vector2f{{1.,0.}}, Vector2f{{1.,1.}}};
-
 	// Create v0 vertex
 	this->vecTriangle.push_back(v0.vertice[0]);
 	this->vecTriangle.push_back(v0.vertice[1]);
 	this->vecTriangle.push_back(v0.vertice[2]);
 
 	// Create v0 uv
-	pUV = (v0.texCoord[0] == -1. || v0.texCoord[1] == -1.) ?
-		&arrayUV[0] : &v0.texCoord;
-	this->vecUV.push_back((*pUV)[0]);
-	this->vecUV.push_back((*pUV)[1]);
+	this->vecUV.push_back(v0.texCoord[0]);
+	this->vecUV.push_back(v0.texCoord[1]);
 
 	// Create v1 vertex
 	this->vecTriangle.push_back(v1.vertice[0]);
@@ -269,10 +266,8 @@ void	Obj::CreateTriangle(const FaceVertex& v0, const FaceVertex& v1, const FaceV
 	this->vecTriangle.push_back(v1.vertice[2]);
 
 	// Create v1 uv
-	pUV = (v1.texCoord[0] == -1. || v1.texCoord[1] == -1.) ?
-		&arrayUV[1] : &v1.texCoord;
-	this->vecUV.push_back((*pUV)[0]);
-	this->vecUV.push_back((*pUV)[1]);
+	this->vecUV.push_back(v1.texCoord[0]);
+	this->vecUV.push_back(v1.texCoord[1]);
 
 	// Create v2 vertex
 	this->vecTriangle.push_back(v2.vertice[0]);
@@ -280,10 +275,8 @@ void	Obj::CreateTriangle(const FaceVertex& v0, const FaceVertex& v1, const FaceV
 	this->vecTriangle.push_back(v2.vertice[2]);
 
 	// Create v2 uv
-	pUV = (v2.texCoord[0] == -1. || v2.texCoord[1] == -1.) ?
-		&arrayUV[2] : &v2.texCoord;
-	this->vecUV.push_back((*pUV)[0]);
-	this->vecUV.push_back((*pUV)[1]);
+	this->vecUV.push_back(v2.texCoord[0]);
+	this->vecUV.push_back(v2.texCoord[1]);
 }
 
 //*********************
@@ -340,3 +333,40 @@ void	Obj::ComputeCenter()
 	}
 	meanDistCenter /= (GLfloat)this->vecObjVertex.size();
 }
+
+// Create UV if not given
+void	CreateMissingUV(std::vector<FaceVertex>& faceVertices)
+{
+	for (size_t i = 0; i < faceVertices.size(); ++i)
+	{
+		if (faceVertices[i].texCoord[0] == -1.f || faceVertices[i].texCoord[1] == -1.f)
+		{
+			if (faceVertices.size() % 2 == 1)
+			{
+				if (i % 3 == 0)
+					faceVertices[i].texCoord = Vector2f{{0.,0.}};
+				else if (i % 3 == 1)
+					faceVertices[i].texCoord = Vector2f{{1.,1.}};
+				else if (i % 3 == 2)
+				{
+					if ((i / 3) % 2 == 0)
+						faceVertices[i].texCoord = Vector2f{{1.,0.}};
+					else
+						faceVertices[i].texCoord = Vector2f{{0.,1.}};
+				}
+			}
+			else
+			{
+				if (i % 4 == 0)
+					faceVertices[i].texCoord = Vector2f{{0.,0.}};
+				else if (i % 4 == 1)
+					faceVertices[i].texCoord = Vector2f{{0.,1.}};
+				else if (i % 4 == 2)
+					faceVertices[i].texCoord = Vector2f{{1.,1.}};
+				else if (i % 4 == 3)
+					faceVertices[i].texCoord = Vector2f{{1.,0.}};
+			}
+		}
+	}
+}
+

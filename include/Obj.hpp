@@ -92,8 +92,8 @@ class Obj
 	void	ParseFace(std::stringstream& lineStream, size_t compt);
 	FaceVertex	ParseFaceVert(const std::string& faceElem, Vector3f& normal,
 								std::set<size_t>& setVertexId);
-	void	TriangulationWithCheck(const std::vector<FaceVertex>& vecObjVertex, const Vector3f& normal, size_t lineNb);
-	void	FanTriangulation(const std::vector<FaceVertex>& faceVertices, Vector3f normal);
+	void	TriangulationWithCheck(std::vector<FaceVertex>& vecObjVertex, const Vector3f& normal, size_t lineNb);
+	void	FanTriangulation(std::vector<FaceVertex>& faceVertices, Vector3f normal);
 	void	CreateTriangle(const FaceVertex& v1, const FaceVertex& v2, const FaceVertex& v3);
 	void	ComputeCenter();
 };
@@ -101,3 +101,4 @@ class Obj
 // Utils
 bool	IsPolygonePlane(const std::vector<Vector3f>& vecEdges);
 bool	IsPolygoneConvex(const std::vector<Vector3f>& vecEdges);
+void	CreateMissingUV(std::vector<FaceVertex>& faceVertices);
