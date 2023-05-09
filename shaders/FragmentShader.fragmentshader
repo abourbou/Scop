@@ -24,7 +24,7 @@ void main()
 	vec3 textureColor = texture(myTextureSampler, UV).rgb;
 
 	if (!lineMode)
-		color = (1.f - gradTexture) * tiltColor + gradTexture * textureColor;
+		color = mix(tiltColor, textureColor, gradTexture);
 	else
 		color = vec3(1.f,1.f,1.f);
 }
