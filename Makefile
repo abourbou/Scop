@@ -38,23 +38,21 @@ SRC			=	$(addprefix $(PATH_SRC)/, \
 				)
 
 OBJ			=	$(addprefix $(PATH_OBJ)/, $(SRC:.cxx=.o))
-
-# Headers
-INC_FILES	= $(wildcard $(PATH_INC)/*.hpp)
-
-INC			=	$(INC_FILES)
+DEPENDS		= $(OBJ:%.o=%.d)
 
 # Rules
 all			:	$(NAME)
 
-$(NAME)	:	$(OBJ) $(INC)
+$(NAME)	:	$(OBJ)
 	@ $(CC) $(FLAGS) $(HEADER) $(OBJ) -o $(NAME) -lglfw -lGL -lGLEW
 	@ printf "\033[2K\r$(BLUE)$(NAME)$(RESET)$(BLUEE): $(ICONOK)Compiled [√]$(RESET)\n"
 
-$(PATH_OBJ)/%.o		: 	%.cxx    $(INC)
+$(PATH_OBJ)/%.o		: 	%.cxx
 	@ mkdir -p $(dir $@)
 	@ printf "\033[2K\r$(PURPLE)$<: $(CYAN)loading..$(RESET)"
-	@ $(CC) $(FLAGS) $(HEADER) -c  -o $@ $<
+	@ $(CC) $(FLAGS) $(HEADER) -c -MMD  -o $@ $<
+
+-include $(DEPENDS)
 
 clean			:
 				@ rm -rf ${obj}
