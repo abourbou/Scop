@@ -370,12 +370,16 @@ void	loopDraw(GLFWwindow* window, const Obj &obj, std::string textureFile)
 		glfwPollEvents();
 
 	} // Check if the ESC key was pressed or the window was closed
-	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
-		   glfwWindowShouldClose(window) == 0 );
+	while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
+		  glfwWindowShouldClose(window) == 0);
 
-	// Cleanup VBO
+	// Cleanup openGL objects
 	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &UVbuffer);
 	glDeleteVertexArrays(1, &VertexArrayID);
+	glDeleteVertexArrays(1, &NormalArrayID);
+	glDeleteVertexArrays(1, &UVarrayID);
 	glDeleteTextures(1, &TextureNb);
 	glDeleteProgram(programID);
 
